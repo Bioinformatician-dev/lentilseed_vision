@@ -1,0 +1,26 @@
+# Streamlit's own chrome — file uploaders, sliders, dataframes, the toolbar —
+# is themed here. ui/theme.py styles everything the app draws itself; these
+# values keep the widgets that Streamlit draws on the same palette.
+#
+# `base` is deliberately unset. With no base, Streamlit follows the reader's
+# system light/dark preference, and app.py reads the resolved value back out of
+# st.context.theme so the stylesheet and the Plotly figures agree with it.
+
+[theme]
+font = "IBM Plex Sans, sans-serif"
+codeFont = "IBM Plex Mono, monospace"
+baseRadius = "small"
+
+[theme.light]
+backgroundColor = "#FAFBFA"
+secondaryBackgroundColor = "#F2F4F2"
+textColor = "#12211D"
+primaryColor = "#9A6A27"
+borderColor = "#E2E6E3"
+
+[theme.dark]
+backgroundColor = "#101512"
+secondaryBackgroundColor = "#171D1A"
+textColor = "#E8EEEA"
+primaryColor = "#E3AC5E"
+borderColor = "#2A332E"

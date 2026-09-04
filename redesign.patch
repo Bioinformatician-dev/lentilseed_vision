@@ -1,0 +1,2848 @@
+diff --git a/config.toml b/.streamlit/config.toml
+similarity index 52%
+rename from config.toml
+rename to .streamlit/config.toml
+index 90c797f..2598060 100644
+--- a/config.toml
++++ b/.streamlit/config.toml
+@@ -7,20 +7,25 @@
+ # st.context.theme so the stylesheet and the Plotly figures agree with it.
+ 
+ [theme]
+-font = "IBM Plex Sans, sans-serif"
+-codeFont = "IBM Plex Mono, monospace"
+-baseRadius = "small"
++font = "Bricolage Grotesque, sans-serif"
++baseRadius = "medium"
++buttonRadius = "full"
+ 
+ [theme.light]
+-backgroundColor = "#FAFBFA"
+-secondaryBackgroundColor = "#F2F4F2"
+-textColor = "#12211D"
+-primaryColor = "#9A6A27"
+-borderColor = "#E2E6E3"
++backgroundColor = "#F2F4EC"
++secondaryBackgroundColor = "#E9EDE1"
++textColor = "#1B2116"
++primaryColor = "#5B7128"
++borderColor = "#D3D9C6"
++dataframeBorderColor = "#D3D9C6"
+ 
+ [theme.dark]
+-backgroundColor = "#101512"
+-secondaryBackgroundColor = "#171D1A"
+-textColor = "#E8EEEA"
+-primaryColor = "#E3AC5E"
+-borderColor = "#2A332E"
++backgroundColor = "#161A12"
++secondaryBackgroundColor = "#1F2419"
++textColor = "#E9ECDF"
++primaryColor = "#A5C25A"
++borderColor = "#333B2B"
++dataframeBorderColor = "#333B2B"
++
++[server]
++maxUploadSize = 200
+diff --git a/app.py b/app.py
+index 0325298..0fa6ef4 100644
+--- a/app.py
++++ b/app.py
+@@ -255,8 +255,9 @@ except Exception as e:                                 # noqa: BLE001
+ 
+ C.masthead(
+     "LentilSeedVision",
+-    "Photograph a tray. Every seed is found, traced, measured, classified and "
+-    "checked, and the numbers come out as a table you can publish from.",
++    "Photograph a tray of seeds. Each one is found, traced, measured and "
++    "sorted by coat type, then checked, and the results come out as a table "
++    "you can publish from.",
+ )
+ 
+ px_per_mm = st.session_state["px_per_mm"]
+diff --git a/assets/banner_title.svg b/assets/banner_title.svg
+index fa096b1..15aaeaf 100644
+--- a/assets/banner_title.svg
++++ b/assets/banner_title.svg
+@@ -9,15 +9,15 @@
+   <style>
+     .paper { fill: #FAFBFA; }
+     .edge  { fill: none; stroke: #E2E6E3; stroke-width: 1; }
+-    .ink   { fill: #12211D; }
++    .ink   { fill: #1B2116; }
+     .muted { fill: #6F7B76; }
+-    .word  { font-family: 'IBM Plex Sans', 'DejaVu Sans', sans-serif; font-weight: 600;
++    .word  { font-family: 'Bricolage Grotesque', 'DejaVu Sans', sans-serif; font-weight: 600;
+              font-size: 44px; letter-spacing: -0.02em; }
+-    .tag   { font-family: 'IBM Plex Sans', 'DejaVu Sans', sans-serif; font-size: 17px; }
+-    .mono  { font-family: 'IBM Plex Mono', 'DejaVu Sans Mono', monospace; font-size: 11px; }
++    .tag   { font-family: 'Bricolage Grotesque', 'DejaVu Sans', sans-serif; font-size: 17px; }
++    .mono  { font-family: 'Bricolage Grotesque', 'DejaVu Sans Mono', monospace; font-size: 11px; }
+ 
+     .coat  { fill: #E6D5B8; fill-opacity: 0; animation: ink .6s .5s ease forwards; }
+-    .trace { fill: none; stroke: #12211D; stroke-width: 3; stroke-linecap: round;
++    .trace { fill: none; stroke: #1B2116; stroke-width: 3; stroke-linecap: round;
+              stroke-dasharray: 250; stroke-dashoffset: 250;
+              animation: draw 1.1s .1s cubic-bezier(.4,0,.2,1) forwards; }
+     .spot  { fill: #6B5334; opacity: 0; transform-box: fill-box; transform-origin: center;
+@@ -25,12 +25,12 @@
+     .p1 { animation-delay: .95s; } .p2 { animation-delay: 1.03s; }
+     .p3 { animation-delay: 1.11s; } .p4 { animation-delay: 1.19s; }
+ 
+-    .cal   { stroke: #C08430; stroke-width: 2; stroke-linecap: round;
++    .cal   { stroke: #5B7128; stroke-width: 2; stroke-linecap: round;
+              stroke-dasharray: 96; stroke-dashoffset: 96;
+              animation: draw .5s 1.25s ease-out forwards; }
+-    .cap   { stroke: #C08430; stroke-width: 2; stroke-linecap: round; opacity: 0;
++    .cap   { stroke: #5B7128; stroke-width: 2; stroke-linecap: round; opacity: 0;
+              animation: ink .25s 1.5s ease forwards; }
+-    .dim   { fill: #C08430; opacity: 0; animation: ink .3s 1.6s ease forwards; }
++    .dim   { fill: #5B7128; opacity: 0; animation: ink .3s 1.6s ease forwards; }
+ 
+     .title { opacity: 0; animation: rise .6s .35s ease-out forwards; }
+     .sub   { opacity: 0; animation: rise .6s .55s ease-out forwards; }
+@@ -45,7 +45,7 @@
+     .n7 { animation-delay: 2.55s; }
+ 
+     /* one slow sweep along the rail, long after everything has settled */
+-    .sweep { fill: #C08430; opacity: 0; animation: sweep 9s 3.4s ease-in-out infinite; }
++    .sweep { fill: #5B7128; opacity: 0; animation: sweep 9s 3.4s ease-in-out infinite; }
+ 
+     @keyframes draw  { to { stroke-dashoffset: 0; } }
+     @keyframes ink   { to { fill-opacity: 1; opacity: 1; } }
+@@ -93,7 +93,7 @@
+       <line class="rail" x1="0" y1="0" x2="470" y2="0"/>
+       <g class="node n1"><circle cx="8"   cy="0" r="7" fill="#2E6FA8"/></g>
+       <g class="node n2"><circle cx="82"  cy="0" r="7" fill="#3C8B57"/></g>
+-      <g class="node n3"><circle cx="156" cy="0" r="7" fill="#C08430"/></g>
++      <g class="node n3"><circle cx="156" cy="0" r="7" fill="#5B7128"/></g>
+       <g class="node n4"><circle cx="230" cy="0" r="7" fill="#4E9A51"/></g>
+       <g class="node n5"><circle cx="304" cy="0" r="7" fill="#7659A6"/></g>
+       <g class="node n6"><circle cx="378" cy="0" r="7" fill="#B24C87"/></g>
+diff --git a/assets/loader_seeds.svg b/assets/loader_seeds.svg
+index 064e8b4..0553c7d 100644
+--- a/assets/loader_seeds.svg
++++ b/assets/loader_seeds.svg
+@@ -6,18 +6,18 @@
+     literal thing the app is doing, rather than a spinner.
+   -->
+   <style>
+-    .tray  { fill: #FFFFFF; stroke: #E2E6E3; stroke-width: 1.5; }
++    .tray  { fill: #FFFFFF; stroke: #D3D9C6; stroke-width: 1.5; }
+     .seed  { fill: #D9B570; }
+     .drop  { animation: drop 2.4s cubic-bezier(.4,0,.6,1) infinite; }
+     .d2 { animation-delay: .30s; } .d3 { animation-delay: .60s; }
+     .d4 { animation-delay: .90s; } .d5 { animation-delay: 1.2s; }
+     .d6 { animation-delay: 1.5s; }
+-    .scan  { stroke: #C08430; stroke-width: 2; opacity: .85;
++    .scan  { stroke: #5B7128; stroke-width: 2; opacity: .85;
+              animation: scan 2.4s ease-in-out infinite; }
+-    .ring  { fill: none; stroke: #3C8B57; stroke-width: 1.6; opacity: 0;
++    .ring  { fill: none; stroke: #5B7128; stroke-width: 1.6; opacity: 0;
+              animation: found 2.4s ease-out infinite; }
+     .r2 { animation-delay: .35s; } .r3 { animation-delay: .7s; }
+-    .tick  { stroke: #E2E6E3; stroke-width: 1; }
++    .tick  { stroke: #D3D9C6; stroke-width: 1; }
+ 
+     @keyframes drop  { 0%   { transform: translateY(-34px); opacity: 0; }
+                        18%  { opacity: 1; }
+diff --git a/assets/logo.svg b/assets/logo.svg
+index 72d5695..8a4f745 100644
+--- a/assets/logo.svg
++++ b/assets/logo.svg
+@@ -8,9 +8,9 @@
+     theme can drive it.
+   -->
+   <style>
+-    :root { --accent: #C08430; --ink: #12211D; }
++    :root { --accent: #5B7128; --ink: #1B2116; }
+     .coat   { fill: #E6D5B8; fill-opacity: 0; }
+-    .trace  { fill: none; stroke: #12211D; stroke-width: 2.4;
++    .trace  { fill: none; stroke: #1B2116; stroke-width: 2.4;
+               stroke-linecap: round; stroke-dasharray: 152; stroke-dashoffset: 152; }
+     .spot   { fill: #6B5334; opacity: 0; }
+     .rule   { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round;
+diff --git a/export.py b/export.py
+deleted file mode 100644
+index 545bb96..0000000
+--- a/export.py
++++ /dev/null
+@@ -1,191 +0,0 @@
+-"""
+-Final outputs — export.
+-
+-Four shapes leave the app: the per-seed CSV, an Excel workbook with a sheet per
+-table, a JSON record, and a ZIP that also carries the annotated photographs.
+-Every one of them travels with the run configuration and a data dictionary, so
+-a table found on a shared drive in two years still explains itself.
+-"""
+-from __future__ import annotations
+-
+-import io
+-import json
+-import zipfile
+-from datetime import datetime, timezone
+-
+-import cv2
+-import pandas as pd
+-
+-# Columns that only matter inside a run.
+-_INTERNAL = ("_contour", "_mask")
+-
+-
+-def clean(df: pd.DataFrame) -> pd.DataFrame:
+-    return df.drop(columns=[c for c in df.columns if c.startswith(_INTERNAL)], errors="ignore")
+-
+-
+-DATA_DICTIONARY: list[tuple[str, str, str]] = [
+-    # column, units, meaning
+-    ("image", "", "file name of the photograph"),
+-    ("seed_id", "", "index of the seed within that photograph"),
+-    ("cls", "", "class predicted by the detector"),
+-    ("confidence", "0-1", "detector confidence for that class"),
+-    ("cx, cy", "px", "seed centre in the frame, used for the position-drift check"),
+-    ("length_px, width_px", "px", "long and short side of the minimum-area rectangle"),
+-    ("area_px2", "px^2", "area enclosed by the traced outline"),
+-    ("perimeter_px", "px", "length of the traced outline"),
+-    ("feret_max_px", "px", "longest distance between any two points on the outline"),
+-    ("roundness", "0-1", "4*pi*area / perimeter^2; 1 is a circle"),
+-    ("aspect_ratio", "", "length / width"),
+-    ("solidity", "0-1", "area / convex hull area; low means a dent or a chip"),
+-    ("convexity", "0-1", "hull perimeter / outline perimeter; low means a rough edge"),
+-    ("extent", "0-1", "area / bounding-box area"),
+-    ("eccentricity", "0-1", "how far the fitted ellipse is from circular"),
+-    ("area_ratio", "", "traced area / ellipse-predicted area; the outline-consistency check"),
+-    ("mean_L, mean_a, mean_b", "CIE-Lab", "coat colour, sampled inside the rim"),
+-    ("chroma, hue_angle", "CIE-Lab", "colourfulness and hue derived from a* and b*"),
+-    ("saturation, brightness", "0-255", "HSV saturation and grey level"),
+-    ("texture_std", "0-255", "grey-level standard deviation across the coat"),
+-    ("spot_count", "", "distinct markings on the coat"),
+-    ("spot_coverage", "0-1", "share of the coat covered by markings"),
+-    ("largest_spot", "0-1", "largest single marking as a share of the coat"),
+-    ("spot_contrast_dE", "dE", "colour distance between markings and base coat"),
+-    ("pattern_class", "", "plain / dotted / spotted / marbled / black, from pixels alone"),
+-    ("length_mm, width_mm", "mm", "size after scale calibration"),
+-    ("thickness_mm", "mm", "width x the thickness ratio — modelled, not measured"),
+-    ("gmd_mm, amd_mm", "mm", "geometric and arithmetic mean diameter"),
+-    ("sphericity", "0-1", "GMD / length"),
+-    ("surface_area_mm2", "mm^2", "sphere-equivalent surface area from GMD"),
+-    ("volume_mm3", "mm^3", "tri-axial ellipsoid volume"),
+-    ("mass_mg", "mg", "volume x density; needs a density to be set"),
+-    ("shape_pc1..", "", "principal component scores of the Fourier outline descriptors"),
+-    ("segment_method", "", "which threshold produced the outline"),
+-    ("outline_error", "", "area_ratio - 1; large values mean a suspect trace"),
+-    ("truncated", "", "the seed runs off the edge of the frame"),
+-]
+-
+-
+-def data_dictionary_frame() -> pd.DataFrame:
+-    return pd.DataFrame(DATA_DICTIONARY, columns=["column", "units", "meaning"])
+-
+-
+-def _tables(result, validation: pd.DataFrame | None = None) -> dict[str, pd.DataFrame]:
+-    tables = {
+-        "per_seed": clean(result.seeds),
+-        "lot_statistics": result.lot_stats,
+-        "per_image": result.per_image,
+-        "composition": result.composition,
+-        "quality_control": result.qc,
+-        "detection_report": result.detection,
+-        "detection_checks": result.checks,
+-        "data_dictionary": data_dictionary_frame(),
+-    }
+-    if validation is not None and not validation.empty:
+-        tables["external_validation"] = validation
+-    return {k: v for k, v in tables.items() if v is not None and not v.empty}
+-
+-
+-def to_csv_bytes(df: pd.DataFrame) -> bytes:
+-    return clean(df).to_csv(index=False).encode("utf-8")
+-
+-
+-def to_excel_bytes(result, validation: pd.DataFrame | None = None) -> bytes:
+-    buf = io.BytesIO()
+-    with pd.ExcelWriter(buf, engine="openpyxl") as xl:
+-        for sheet, df in _tables(result, validation).items():
+-            df.to_excel(xl, sheet_name=sheet[:31], index=False)
+-        pd.DataFrame(
+-            [{"setting": k, "value": json.dumps(v)} for k, v in result.config.items()]
+-        ).to_excel(xl, sheet_name="run_config", index=False)
+-    return buf.getvalue()
+-
+-
+-def to_json_bytes(result, validation: pd.DataFrame | None = None) -> bytes:
+-    payload = {
+-        "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+-        "units": result.units,
+-        "n_images": int(result.seeds.image.nunique()) if not result.seeds.empty else 0,
+-        "n_seeds": int(len(result.seeds)),
+-        "thousand_seed_weight": result.tsw,
+-        "assumptions": result.notes,
+-        "config": result.config,
+-        "lot_statistics": json.loads(result.lot_stats.to_json(orient="records"))
+-        if not result.lot_stats.empty else [],
+-        "seeds": json.loads(clean(result.seeds).to_json(orient="records")),
+-    }
+-    if validation is not None and not validation.empty:
+-        payload["external_validation"] = json.loads(validation.to_json(orient="records"))
+-    return json.dumps(payload, indent=2).encode("utf-8")
+-
+-
+-# ---------------------------------------------------------------------------
+-# annotated photographs
+-# ---------------------------------------------------------------------------
+-
+-def annotated_bytes(img, fmt: str = "png", quality: int = 92) -> bytes:
+-    """One annotated tray as file bytes. PNG keeps the drawn outlines crisp."""
+-    if fmt == "png":
+-        ok, enc = cv2.imencode(".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 6])
+-    else:
+-        ok, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, quality])
+-    return enc.tobytes() if ok else b""
+-
+-
+-def annotated_name(image_name: str, fmt: str = "png") -> str:
+-    return f"{image_name.rsplit('.', 1)[0]}_annotated.{fmt}"
+-
+-
+-def annotated_zip_bytes(annotated: dict, fmt: str = "png") -> bytes:
+-    """Every annotated tray in one archive, for dropping into a manuscript."""
+-    buf = io.BytesIO()
+-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+-        for name, img in annotated.items():
+-            data = annotated_bytes(img, fmt)
+-            if data:
+-                z.writestr(annotated_name(name, fmt), data)
+-    return buf.getvalue()
+-
+-
+-def to_zip_bytes(result, validation: pd.DataFrame | None = None,
+-                 include_images: bool = True, include_report: bool = True) -> bytes:
+-    """Everything at once: tables, annotated trays, the report, config, README."""
+-    buf = io.BytesIO()
+-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+-        for name, df in _tables(result, validation).items():
+-            z.writestr(f"tables/{name}.csv", df.to_csv(index=False))
+-        z.writestr("run_config.json", json.dumps(result.config, indent=2))
+-        z.writestr("README.txt", _bundle_readme(result))
+-        if include_report:
+-            from .report import build_html
+-            z.writestr("report.html", build_html(result, validation))
+-        if include_images:
+-            for name, img in result.annotated.items():
+-                data = annotated_bytes(img, "jpg", 88)
+-                if data:
+-                    z.writestr(f"annotated/{annotated_name(name, 'jpg')}", data)
+-    return buf.getvalue()
+-
+-
+-def _bundle_readme(result) -> str:
+-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+-    lines = [
+-        "Lentil seed phenotyping — results bundle",
+-        f"Written {stamp}",
+-        "",
+-        f"{len(result.seeds)} seeds across {result.seeds.image.nunique()} photographs, "
+-        f"measured in {result.units}.",
+-        "",
+-        "tables/per_seed.csv        one row per seed, every trait",
+-        "tables/lot_statistics.csv  mean, SD, CV and percentiles per trait",
+-        "tables/per_image.csv       the same, split by photograph",
+-        "tables/quality_control.csv what each photograph passed or failed",
+-        "tables/detection_checks.csv duplicate, merged and edge detections",
+-        "tables/data_dictionary.csv what every column means",
+-        "annotated/                 each tray with its boxes and outlines drawn",
+-        "report.html                the whole run as one readable page — open it in a browser",
+-        "run_config.json            every setting used, for reproducing this run",
+-        "",
+-        "Assumptions behind the physical columns:",
+-    ]
+-    lines += [f"  - {n}" for n in result.notes]
+-    return "\n".join(lines)
+diff --git a/generate_branding.py b/generate_branding.py
+index 14830a3..d4b39cb 100644
+--- a/generate_branding.py
++++ b/generate_branding.py
+@@ -27,19 +27,19 @@ from PIL import Image, ImageDraw, ImageFont
+ HERE = Path(__file__).parent
+ ASSETS = HERE / "assets"
+ 
+-INK = (18, 33, 29, 255)
+-PAPER = (250, 251, 250, 255)
++INK = (27, 33, 22, 255)
++PAPER = (242, 244, 236, 255)
+ CARD = (255, 255, 255, 255)
+-LINE = (226, 230, 227, 255)
+-MUTED = (111, 123, 118, 255)
+-ACCENT = (192, 132, 48, 255)
++LINE = (211, 217, 198, 255)
++MUTED = (95, 106, 85, 255)
++ACCENT = (91, 113, 40, 255)
+ COAT = (230, 213, 184, 255)
+ SPOT = (107, 83, 52, 255)
+-STAGE = ["#2E6FA8", "#3C8B57", "#C08430", "#4E9A51", "#7659A6", "#B24C87", "#2E86A0"]
++STAGE = ["#33648F", "#3F7A48", "#96651F", "#5B7128", "#6B5A9E", "#A64C7B", "#2F7A88"]
+ 
+ FONT_CANDIDATES = {
+     "sans": [
+-        "IBMPlexSans-Regular.ttf", "Poppins-Regular.ttf", "LiberationSans-Regular.ttf",
++        "BricolageGrotesque-Regular.ttf", "IBMPlexSans-Regular.ttf", "Poppins-Regular.ttf", "LiberationSans-Regular.ttf",
+         "DejaVuSans.ttf",
+         "Arial.ttf", "Helvetica.ttc",
+     ],
+diff --git a/logo.svg b/logo.svg
+index 72d5695..8a4f745 100644
+--- a/logo.svg
++++ b/logo.svg
+@@ -8,9 +8,9 @@
+     theme can drive it.
+   -->
+   <style>
+-    :root { --accent: #C08430; --ink: #12211D; }
++    :root { --accent: #5B7128; --ink: #1B2116; }
+     .coat   { fill: #E6D5B8; fill-opacity: 0; }
+-    .trace  { fill: none; stroke: #12211D; stroke-width: 2.4;
++    .trace  { fill: none; stroke: #1B2116; stroke-width: 2.4;
+               stroke-linecap: round; stroke-dasharray: 152; stroke-dashoffset: 152; }
+     .spot   { fill: #6B5334; opacity: 0; }
+     .rule   { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round;
+diff --git a/panels.py b/panels.py
+deleted file mode 100644
+index 625a964..0000000
+--- a/panels.py
++++ /dev/null
+@@ -1,976 +0,0 @@
+-"""
+-The seven workflow panels, plus the outputs section, as render functions.
+-
+-Each panel answers one question and says what to do when the answer is bad.
+-They take the finished `RunResult` and, where a panel needs to re-run something
+-(the repeatability test, the per-seed inspector), the detector and the original
+-photographs alongside it.
+-"""
+-from __future__ import annotations
+-
+-import cv2
+-import numpy as np
+-import pandas as pd
+-import plotly.graph_objects as go
+-import streamlit as st
+-
+-from seedvision import shape as shp
+-from seedvision import stage1_acquisition as s1
+-from seedvision import stage3_segmentation as s3
+-from seedvision import stage6_reliability as s6
+-from seedvision import stage7_validation as s7
+-from seedvision import export, lotstats
+-from seedvision.report import build_html
+-from seedvision.config import (
+-    COLOUR_TRAITS, CORE_TRAITS_MM, CORE_TRAITS_PX, PATTERN_TRAITS, SHAPE_TRAITS,
+-)
+-
+-from . import motion
+-from .components import (
+-    bgr_to_rgb, empty_note, hline, muted_caption, note, panel_head, readings,
+-    style_fig, tray_card, verdict,
+-)
+-from .theme import CLASS_COLORS, DEFAULT_CLASS_COLOR, INK, LINE, MUTED, PATTERN_COLORS, STAGE_COLORS
+-
+-
+-@st.cache_data(show_spinner=False)
+-def _report_bytes(run_token: str, seeds_n: int, has_validation: bool, _result,
+-                  _validation) -> bytes:
+-    """Building the report embeds every tray, so it is cached per run."""
+-    return build_html(_result, _validation)
+-
+-
+-def export_report(result, validation) -> bytes:
+-    token = f"{id(result)}-{len(result.seeds)}-{validation is not None}"
+-    return _report_bytes(token, len(result.seeds), validation is not None,
+-                         result, validation)
+-
+-
+-def _colours_for(values) -> list[str]:
+-    return [CLASS_COLORS.get(v, DEFAULT_CLASS_COLOR) for v in values]
+-
+-
+-def _fmt(x, digits=2) -> str:
+-    try:
+-        if x is None or (isinstance(x, float) and not np.isfinite(x)):
+-            return "—"
+-        return f"{float(x):,.{digits}f}"
+-    except (TypeError, ValueError):
+-        return str(x)
+-
+-
+-# ---------------------------------------------------------------------------
+-# 1 — image acquisition & quality control
+-# ---------------------------------------------------------------------------
+-
+-def panel_photographs(result, images: dict, cfg) -> None:
+-    panel_head(1, "Image acquisition & quality control",
+-               "Whether each photograph was fit to measure, before anything was measured "
+-               "from it. Flagged images stay in the results — the flag tells you which "
+-               "numbers to distrust.", "acquire")
+-
+-    qc = result.qc
+-    passed = int(qc.qc_pass.sum())
+-    readings([
+-        (f"{passed}/{len(qc)}", "photographs passed"),
+-        (f"{qc.focus.median():.0f}", "median focus score"),
+-        (f"{100 * qc.illum_cv.median():.1f}%", "lighting variation"),
+-        (s1.scale_summary(cfg.scale).split("·")[0].strip(), "scale"),
+-    ], "acquire")
+-
+-    show = qc[[
+-        "image", "megapixels", "focus", "clip_frac", "illum_cv", "seed_width_px",
+-        "n_seeds", "size_grade", "qc_pass", "qc_reason",
+-    ]].rename(columns={
+-        "megapixels": "MP", "clip_frac": "clipped", "illum_cv": "light CV",
+-        "seed_width_px": "seed width px", "n_seeds": "seeds", "size_grade": "resolution",
+-        "qc_pass": "passed", "qc_reason": "reading",
+-    })
+-    st.dataframe(show, width="stretch", hide_index=True)
+-
+-    failed = qc[~qc.qc_pass]
+-    if not failed.empty:
+-        for _, row in failed.iterrows():
+-            verdict(row.image, f"{row.qc_reason} — reshoot or treat its numbers as indicative.",
+-                    "acquire")
+-
+-    hline()
+-    left, right = st.columns([1, 1])
+-    with left:
+-        st.markdown("**Lighting across the frame**")
+-        pick = st.selectbox("Photograph", list(images), key="qc_illum",
+-                            label_visibility="collapsed")
+-        field = s1.illumination_field(images[pick])
+-        fig = go.Figure(go.Heatmap(
+-            z=field, colorscale="RdYlBu_r", zmid=1.0,
+-            colorbar=dict(title="× mean"),
+-        ))
+-        fig.update_yaxes(autorange="reversed", visible=False)
+-        fig.update_xaxes(visible=False)
+-        st.plotly_chart(style_fig(fig, 320), width="stretch")
+-        note("Even lighting is a flat field. A bright corner or a dark edge here is the "
+-             "same effect that shows up as position drift in panel 6.")
+-
+-    with right:
+-        st.markdown("**Focus and seed size against the limits**")
+-        fig2 = go.Figure()
+-        fig2.add_trace(go.Bar(
+-            x=qc.image, y=qc.focus, name="focus",
+-            marker_color=[STAGE_COLORS["acquire"] if f else "#C86A4E" for f in ~qc.flag_focus],
+-        ))
+-        fig2.add_hline(y=cfg.qc.focus_min, line_dash="dot", line_color=MUTED,
+-                       annotation_text="minimum focus", annotation_position="top left")
+-        st.plotly_chart(style_fig(fig2, 320), width="stretch")
+-        note(f"Seeds should be at least <b>{cfg.qc.seed_min_px:.0f} px</b> across, and "
+-             f"<b>{cfg.qc.seed_good_px:.0f} px</b> before measurement error stops mattering. "
+-             "Move the camera closer rather than cropping afterwards.")
+-
+-
+-# ---------------------------------------------------------------------------
+-# 2 — YOLO seed detection
+-# ---------------------------------------------------------------------------
+-
+-def panel_detection(result, images: dict, cfg) -> None:
+-    panel_head(2, "YOLO seed detection",
+-               "Find every visible seed, then remove the duplicates that finding "
+-               "everything costs. The count on the tray is only as good as this step.",
+-               "detect")
+-
+-    det = result.detection
+-    seeds = result.seeds
+-    readings([
+-        (f"{len(seeds):,}", "seeds kept"),
+-        (f"{int(det.duplicates_removed.sum())}", "duplicates merged"),
+-        (f"{int(det.truncated.sum())}", "cut by the frame edge"),
+-        (f"{seeds.confidence.mean():.2f}", "mean confidence"),
+-    ], "detect")
+-
+-    st.dataframe(
+-        det.rename(columns={
+-            "raw_detections": "raw", "kept": "kept", "duplicates_removed": "merged",
+-            "truncated": "edge", "strategy": "pass", "mean_confidence": "mean conf",
+-        }),
+-        width="stretch", hide_index=True,
+-    )
+-
+-    c1, c2 = st.columns(2)
+-    with c1:
+-        counts = seeds["cls"].value_counts()
+-        fig = go.Figure(go.Bar(x=counts.index, y=counts.values,
+-                               marker_color=_colours_for(counts.index)))
+-        fig.update_yaxes(rangemode="tozero")
+-        st.plotly_chart(style_fig(fig, 320, "Seeds per class"), width="stretch")
+-    with c2:
+-        fig = go.Figure(go.Histogram(x=seeds.confidence, nbinsx=30,
+-                                     marker_color=STAGE_COLORS["detect"]))
+-        fig.add_vline(x=cfg.detect.conf, line_dash="dot", line_color=MUTED,
+-                      annotation_text="threshold")
+-        st.plotly_chart(style_fig(fig, 320, "Detector confidence"), width="stretch")
+-
+-    if seeds.confidence.min() > cfg.detect.conf * 1.5:
+-        note("Nothing was detected near the threshold, so raising it slightly would not "
+-             "lose seeds — but nor is it costing you anything where it is.")
+-    else:
+-        note("Detections sit close to the threshold. Lower it a little and re-run to see "
+-             "whether the count climbs; if it does, seeds are being missed.")
+-
+-    hline()
+-    st.markdown("**Annotated trays**")
+-    cols = st.columns(min(3, max(1, len(result.annotated))))
+-    for i, (name, vis) in enumerate(result.annotated.items()):
+-        with cols[i % len(cols)]:
+-            n = int((seeds.image == name).sum())
+-            tray_card(name, vis, f"<b>{n}</b> seeds")
+-
+-
+-# ---------------------------------------------------------------------------
+-# 3 — segmentation & contour extraction
+-# ---------------------------------------------------------------------------
+-
+-def panel_outlines(result, images: dict, cfg) -> None:
+-    panel_head(3, "Seed-wise segmentation & contour extraction",
+-               "Each seed is thresholded inside its own detection box, so uneven light "
+-               "across the tray cannot bias the outline. Every measurement in panel 4 "
+-               "comes from these outlines.", "segment")
+-
+-    seeds = result.seeds
+-    summary = result.outline_summary
+-    by_method = seeds.segment_method.value_counts()
+-
+-    readings([
+-        (f"{100 * (seeds.segment_ok.mean()):.0f}%", "clean first cut"),
+-        (f"{_fmt(summary.get('median_error_pct'), 1)}%", "median outline error"),
+-        (f"{summary.get('flagged', 0)}", "outlines to inspect"),
+-        (by_method.index[0] if len(by_method) else "—", "commonest method"),
+-    ], "segment")
+-
+-    c1, c2 = st.columns([1, 1])
+-    with c1:
+-        fig = go.Figure(go.Bar(x=by_method.index, y=by_method.values,
+-                               marker_color=STAGE_COLORS["segment"]))
+-        st.plotly_chart(style_fig(fig, 300, "Which threshold produced each outline"),
+-                        width="stretch")
+-        note("<b>otsu</b> is the intended path. A lot leaning on <b>adaptive</b> or the "
+-             "colour-channel fallbacks is telling you the coat and the tray are too close "
+-             "in tone — change the background, not the settings.")
+-    with c2:
+-        err = (100 * seeds.outline_error).replace([np.inf, -np.inf], np.nan).dropna()
+-        fig = go.Figure(go.Histogram(x=err, nbinsx=40, marker_color=STAGE_COLORS["segment"]))
+-        fig.add_vline(x=0, line_color=MUTED, line_dash="dot")
+-        fig.update_xaxes(title="traced area vs ellipse-predicted area (%)")
+-        st.plotly_chart(style_fig(fig, 300, "Outline consistency"), width="stretch")
+-        note("A seed is nearly an ellipse, so this should cluster near zero. The long tail "
+-             "is where the trace leaked into a shadow or swallowed a neighbour.")
+-
+-    hline()
+-    st.markdown("**Inspect one seed**")
+-    muted_caption("Region of interest, threshold, mask and the outline that came out of it.")
+-
+-    ic1, ic2 = st.columns([1, 3])
+-    with ic1:
+-        img_name = st.selectbox("Photograph", sorted(seeds.image.unique()), key="seg_img")
+-        subset = seeds[seeds.image == img_name]
+-        worst = subset.reindex(subset.outline_error.abs().sort_values(ascending=False).index)
+-        mode = st.radio("Pick", ["Most suspect", "By id"], key="seg_mode",
+-                        label_visibility="collapsed")
+-        if mode == "Most suspect" and not worst.empty:
+-            row = worst.iloc[0]
+-        else:
+-            sid = st.number_input("Seed id", 0, int(subset.seed_id.max()), 0, key="seg_id")
+-            match = subset[subset.seed_id == sid]
+-            row = match.iloc[0] if not match.empty else subset.iloc[0]
+-        st.markdown(
+-            f"<div class='chipline'><span class='chip'>id <b>{int(row.seed_id)}</b></span>"
+-            f"<span class='chip'>{row.cls}</span>"
+-            f"<span class='chip'>error <b>{100 * row.outline_error:+.1f}%</b></span>"
+-            f"<span class='chip'>method <b>{row.segment_method}</b></span></div>",
+-            unsafe_allow_html=True,
+-        )
+-
+-    with ic2:
+-        img = images.get(img_name)
+-        if img is None:
+-            empty_note("That photograph is no longer in memory — re-run the batch.")
+-            return
+-        roi, ox, oy = s3.extract_roi(img, (row.x1, row.y1, row.x2, row.y2), cfg.segment.pad_px)
+-        seg = s3.segment_seed(roi, cfg.segment)
+-        if seg is None:
+-            empty_note("This seed could not be re-segmented at the current settings.")
+-            return
+-        outline = np.zeros_like(seg.mask)
+-        cv2.drawContours(outline, [seg.contour], -1, 255, 2)
+-        traced = roi.copy()
+-        cv2.drawContours(traced, [seg.contour], -1, (60, 132, 48), 2)
+-
+-        g1, g2, g3, g4 = st.columns(4)
+-        for col, arr, label in (
+-            (g1, bgr_to_rgb(roi), "region of interest"),
+-            (g2, seg.mask, "mask after thresholding"),
+-            (g3, outline, "clean outline"),
+-            (g4, bgr_to_rgb(traced), "outline on the seed"),
+-        ):
+-            with col:
+-                st.image(arr, width="stretch")
+-                muted_caption(label)
+-
+-
+-# ---------------------------------------------------------------------------
+-# 4 — image-derived phenotypes
+-# ---------------------------------------------------------------------------
+-
+-def panel_phenotypes(result, images: dict, cfg) -> None:
+-    panel_head(4, "Image-derived phenotypes",
+-               "Three readings per seed: shape and size from the outline, colour from the "
+-               "coat, and the markings on it. The coat pattern is read from pixels alone "
+-               "and never consults the detector's label, so the two can disagree.",
+-               "phenotype")
+-
+-    seeds = result.seeds
+-    units = result.units
+-    tabs = st.tabs(["Morphology", "Colour", "Coat pattern"])
+-
+-    with tabs[0]:
+-        options = [c for c in [*(CORE_TRAITS_MM if units == "mm" else CORE_TRAITS_PX),
+-                               *SHAPE_TRAITS] if c in seeds.columns and seeds[c].notna().any()]
+-        trait = st.selectbox("Trait", options, key="morph_trait")
+-        v = pd.to_numeric(seeds[trait], errors="coerce").dropna()
+-
+-        readings([
+-            (_fmt(v.mean()), f"mean {trait}"),
+-            (_fmt(v.std(ddof=1)), "standard deviation"),
+-            (f"{100 * v.std(ddof=1) / v.mean():.1f}%" if v.mean() else "—", "CV"),
+-            (f"{_fmt(v.quantile(.05))}–{_fmt(v.quantile(.95))}", "5th–95th percentile"),
+-        ], "phenotype")
+-
+-        c1, c2 = st.columns([1.3, 1])
+-        with c1:
+-            fig = go.Figure(go.Histogram(x=v, nbinsx=40, marker_color=STAGE_COLORS["phenotype"]))
+-            fig.add_vline(x=v.mean(), line_color=INK, line_dash="dot", annotation_text="mean")
+-            st.plotly_chart(style_fig(fig, 330, f"{trait} across the lot"), width="stretch")
+-        with c2:
+-            fig = go.Figure()
+-            for cls, g in seeds.groupby("cls"):
+-                fig.add_trace(go.Box(
+-                    y=pd.to_numeric(g[trait], errors="coerce"), name=cls, boxpoints=False,
+-                    marker_color=CLASS_COLORS.get(cls, DEFAULT_CLASS_COLOR),
+-                ))
+-            fig.update_layout(showlegend=False)
+-            st.plotly_chart(style_fig(fig, 330, "By detector class"), width="stretch")
+-
+-        st.markdown("**Length against width**")
+-        fig = go.Figure()
+-        xcol = "length_mm" if units == "mm" else "length_px"
+-        ycol = "width_mm" if units == "mm" else "width_px"
+-        for cls, g in seeds.groupby("cls"):
+-            fig.add_trace(go.Scatter(
+-                x=g[xcol], y=g[ycol], mode="markers", name=cls,
+-                marker=dict(size=6, color=CLASS_COLORS.get(cls, DEFAULT_CLASS_COLOR),
+-                            line=dict(width=0)),
+-            ))
+-        fig.update_xaxes(title=xcol)
+-        fig.update_yaxes(title=ycol)
+-        st.plotly_chart(style_fig(fig, 380), width="stretch")
+-        note("Seeds of one variety fall on a line through the origin — a seed off that line "
+-             "is a different shape, not just a different size.")
+-
+-    with tabs[1]:
+-        c1, c2 = st.columns(2)
+-        with c1:
+-            fig = go.Figure(go.Scatter(
+-                x=seeds.mean_a, y=seeds.mean_b, mode="markers",
+-                marker=dict(size=6, color=seeds.mean_L, colorscale="YlOrBr",
+-                            colorbar=dict(title="L*"), showscale=True),
+-                text=seeds.cls, hovertemplate="a* %{x:.1f}<br>b* %{y:.1f}<br>%{text}<extra></extra>",
+-            ))
+-            fig.update_xaxes(title="a*  (green ← → red)")
+-            fig.update_yaxes(title="b*  (blue ← → yellow)")
+-            st.plotly_chart(style_fig(fig, 380, "Coat colour in CIE a*b*"), width="stretch")
+-        with c2:
+-            trait = st.selectbox("Colour trait", [c for c in COLOUR_TRAITS if c in seeds.columns],
+-                                 key="col_trait")
+-            fig = go.Figure()
+-            for cls, g in seeds.groupby("cls"):
+-                fig.add_trace(go.Violin(
+-                    y=pd.to_numeric(g[trait], errors="coerce"), name=cls, box_visible=True,
+-                    line_color=CLASS_COLORS.get(cls, DEFAULT_CLASS_COLOR), points=False,
+-                ))
+-            fig.update_layout(showlegend=False)
+-            st.plotly_chart(style_fig(fig, 380, f"{trait} by class"), width="stretch")
+-
+-        if "hex" in seeds.columns:
+-            st.markdown("**Colour of every seed, sorted by lightness**")
+-            ordered = seeds.sort_values("mean_L")
+-            swatches = "".join(
+-                f'<span style="display:inline-block;width:11px;height:22px;background:{h}"></span>'
+-                for h in ordered.hex.head(400)
+-            )
+-            st.markdown(f"<div style='line-height:0'>{swatches}</div>", unsafe_allow_html=True)
+-            muted_caption("Each bar is one seed's mean coat colour. A clean gradient means one "
+-                          "population; a break means two.")
+-
+-    with tabs[2]:
+-        if "pattern_class" not in seeds.columns:
+-            empty_note("No coat pattern was read for this lot.")
+-            return
+-        counts = seeds.pattern_class.value_counts()
+-        readings([
+-            (counts.index[0], "commonest pattern"),
+-            (f"{100 * counts.iloc[0] / len(seeds):.0f}%", "of the lot"),
+-            (f"{seeds.spot_count.mean():.1f}", "markings per seed"),
+-            (f"{100 * seeds.spot_coverage.mean():.1f}%", "of coat marked"),
+-        ], "phenotype")
+-
+-        c1, c2 = st.columns(2)
+-        with c1:
+-            fig = go.Figure(go.Bar(
+-                x=counts.index, y=counts.values,
+-                marker_color=[PATTERN_COLORS.get(p, DEFAULT_CLASS_COLOR) for p in counts.index],
+-            ))
+-            st.plotly_chart(style_fig(fig, 320, "Coat pattern, read from pixels"),
+-                            width="stretch")
+-        with c2:
+-            fig = go.Figure(go.Scatter(
+-                x=seeds.spot_count, y=seeds.spot_coverage, mode="markers",
+-                marker=dict(size=6, color=seeds.spot_contrast_dE, colorscale="Oranges",
+-                            colorbar=dict(title="ΔE"), showscale=True),
+-                text=seeds.pattern_class,
+-            ))
+-            fig.update_xaxes(title="markings per seed")
+-            fig.update_yaxes(title="share of coat marked")
+-            st.plotly_chart(style_fig(fig, 320, "How marked the coats are"), width="stretch")
+-
+-        cross = lotstats.agreement_table(seeds)
+-        if not cross.empty:
+-            st.markdown("**Detector class against coat pattern**")
+-            st.dataframe(cross, width="stretch")
+-            off_diagonal = 1 - np.trace(cross.values) / cross.values.sum()
+-            note(f"These are two independent readings of the same seeds, so they will not "
+-                 f"match exactly. Here they differ on <b>{100 * off_diagonal:.0f}%</b> of "
+-                 "seeds — worth opening a few of those in panel 3 before trusting either.")
+-
+-
+-# ---------------------------------------------------------------------------
+-# 5 — derived physical properties
+-# ---------------------------------------------------------------------------
+-
+-def panel_physical(result, images: dict, cfg) -> None:
+-    panel_head(5, "Derived physical properties",
+-               "Pixels become millimetres, and the engineering properties follow: mean "
+-               "diameters, sphericity, surface area, volume, mass and thousand-seed weight.",
+-               "physical")
+-
+-    seeds = result.seeds
+-    if result.units != "mm":
+-        empty_note("This run is uncalibrated, so there are no physical properties yet.")
+-        note("Photograph a ruler beside the tray, then set the scale in the sidebar under "
+-             "<b>2 · Scale</b>. Every column below appears once it is set: mm sizes, "
+-             "volume, mass and thousand-seed weight.")
+-        return
+-
+-    for n in result.notes:
+-        verdict("assumption", n, "physical")
+-
+-    tsw = result.tsw
+-    readings([
+-        (f"{seeds.length_mm.mean():.2f}", "mean length (mm)"),
+-        (f"{seeds.gmd_mm.mean():.2f}", "geometric mean diameter (mm)"),
+-        (f"{seeds.volume_mm3.mean():.1f}", "mean volume (mm³)"),
+-        (f"{tsw['tsw_g']:.1f} ± {tsw.get('tsw_ci95_g', float('nan')):.1f}" if tsw else "—",
+-         "thousand-seed weight (g)"),
+-    ], "physical")
+-
+-    c1, c2 = st.columns(2)
+-    with c1:
+-        fig = go.Figure()
+-        for col, colour in (("length_mm", "#7659A6"), ("width_mm", "#A48CCB"),
+-                            ("thickness_mm", "#CFC1E4")):
+-            if col in seeds.columns:
+-                fig.add_trace(go.Histogram(x=seeds[col], name=col, nbinsx=35,
+-                                           marker_color=colour, opacity=0.75))
+-        fig.update_layout(barmode="overlay", xaxis_title="mm")
+-        st.plotly_chart(style_fig(fig, 340, "The three axes"), width="stretch")
+-        note("Thickness is modelled from width, so its distribution is width's distribution "
+-             "rescaled. It is drawn here to show what the volume rests on, not as an "
+-             "independent measurement.")
+-    with c2:
+-        fig = go.Figure(go.Scatter(
+-            x=seeds.gmd_mm, y=seeds.sphericity, mode="markers",
+-            marker=dict(size=6, color=seeds.volume_mm3, colorscale="Purples",
+-                        colorbar=dict(title="mm³"), showscale=True),
+-        ))
+-        fig.update_xaxes(title="geometric mean diameter (mm)")
+-        fig.update_yaxes(title="sphericity")
+-        st.plotly_chart(style_fig(fig, 340, "Size against roundness of the solid"),
+-                        width="stretch")
+-
+-    hline()
+-    st.markdown("**Thousand-seed weight**")
+-    if not tsw:
+-        note("Set a density in the sidebar under <b>5 · Physical properties</b> — either the "
+-             "literature figure for a first estimate, or your own, by weighing a counted "
+-             "sub-sample.")
+-    else:
+-        cols = st.columns(4)
+-        for col, (label, value) in zip(cols, [
+-            ("TSW", f"{tsw['tsw_g']:.2f} g"),
+-            ("95% interval", f"± {tsw.get('tsw_ci95_g', float('nan')):.2f} g"),
+-            ("mean seed mass", f"{tsw['mean_mass_mg']:.2f} mg"),
+-            ("mass CV", f"{tsw.get('cv_mass_pct', float('nan')):.1f}%"),
+-        ]):
+-            col.metric(label, value)
+-        note("TSW here is computed from measured volumes and a density, not from a balance. "
+-             "It follows the lot's real size distribution, which a scoop-and-weigh does not — "
+-             "but it is only as good as the density and the thickness ratio behind it.")
+-
+-    st.markdown("**Physical traits, seed by seed**")
+-    show = [c for c in ["image", "seed_id", "cls", "length_mm", "width_mm", "thickness_mm",
+-                        "gmd_mm", "amd_mm", "sphericity", "surface_area_mm2",
+-                        "volume_mm3", "mass_mg"] if c in seeds.columns]
+-    st.dataframe(seeds[show].round(3), width="stretch", height=320, hide_index=True)
+-
+-
+-# ---------------------------------------------------------------------------
+-# 6 — reliability & self-consistency
+-# ---------------------------------------------------------------------------
+-
+-def panel_reliability(result, images: dict, cfg, detector) -> None:
+-    panel_head(6, "Reliability & self-consistency checks",
+-               "No ground truth needed. These ask whether the pipeline agrees with itself: "
+-               "across duplicate detections, across transformations of the same tray, and "
+-               "across the frame.", "reliability")
+-
+-    seeds = result.seeds
+-    checks = result.checks
+-    summary = result.outline_summary
+-
+-    readings([
+-        (f"{int(checks.duplicate_pairs.sum())}", "duplicate detections"),
+-        (f"{int(checks.merged_suspects.sum())}", "merged-seed suspects"),
+-        (f"{summary.get('flagged', 0)}", "outlines flagged"),
+-        (f"{int(checks.edge_truncated.sum())}", "seeds cut by the frame"),
+-    ], "reliability")
+-
+-    tabs = st.tabs([
+-        "Detection checks", "Outline consistency", "Repeatability",
+-        "Position drift", "Seed-to-seed matching",
+-    ])
+-
+-    with tabs[0]:
+-        st.dataframe(checks, width="stretch", hide_index=True)
+-        note("Two boxes on one seed inflate the count; one box across two deflates it. "
+-             "Both survive a confidence threshold, which is why they are counted here "
+-             "rather than assumed away.")
+-
+-    with tabs[1]:
+-        c1, c2 = st.columns([1, 1])
+-        with c1:
+-            for k, v in [
+-                ("median error", f"{_fmt(summary.get('median_error_pct'), 2)}%"),
+-                ("spread (IQR)", f"{_fmt(summary.get('iqr_error_pct'), 2)}%"),
+-                ("flagged", f"{summary.get('flagged', 0)} seeds "
+-                            f"({_fmt(summary.get('flagged_pct'), 1)}%)"),
+-            ]:
+-                verdict(k, v, "reliability")
+-            by_method = summary.get("by_method", {})
+-            if by_method:
+-                st.markdown("**Failure rate by threshold method**")
+-                st.dataframe(
+-                    pd.DataFrame(by_method.items(), columns=["method", "flagged %"]),
+-                    width="stretch", hide_index=True,
+-                )
+-        with c2:
+-            fig = go.Figure(go.Scatter(
+-                x=seeds.area_px2, y=seeds.ellipse_area_px2, mode="markers",
+-                marker=dict(size=5, color=np.where(seeds.outline_flag, "#B24C87", "#9AA8A2")),
+-            ))
+-            lim = float(np.nanpercentile(seeds.area_px2, 99)) * 1.1
+-            fig.add_trace(go.Scatter(x=[0, lim], y=[0, lim], mode="lines",
+-                                     line=dict(color=INK, dash="dot"), showlegend=False))
+-            fig.update_xaxes(title="traced area (px²)")
+-            fig.update_yaxes(title="ellipse-predicted area (px²)")
+-            fig.update_layout(showlegend=False)
+-            st.plotly_chart(style_fig(fig, 340, "Traced against predicted"), width="stretch")
+-
+-    with tabs[2]:
+-        note("The same tray, flipped, rotated and resized. Nothing about the seeds changed, "
+-             "so whatever the numbers do is the pipeline's own noise. A difference between "
+-             "two lots smaller than this CV is not a difference.")
+-        c1, c2 = st.columns([1, 2])
+-        with c1:
+-            name = st.selectbox("Photograph", list(images), key="rep_img")
+-            traits = st.multiselect(
+-                "Traits", result.trait_menu,
+-                default=result.trait_menu[:3], key="rep_traits",
+-            )
+-            run = st.button("Run the test-retest", width="stretch", key="rep_run")
+-        with c2:
+-            if run and detector is not None and traits:
+-                with st.spinner("Measuring the same tray four ways…"):
+-                    def measure(image, label):
+-                        from seedvision.runner import measure_image
+-                        return measure_image(image, label, detector, cfg)
+-                    per_rep, per_trait = s6.repeatability(
+-                        images[name], name, measure, cfg.reliability, traits
+-                    )
+-                st.session_state["repeat"] = (per_rep, per_trait)
+-            stored = st.session_state.get("repeat")
+-            if stored:
+-                per_rep, per_trait = stored
+-                st.dataframe(per_rep.round(3), width="stretch", hide_index=True)
+-                if not per_trait.empty:
+-                    st.dataframe(
+-                        per_trait[["trait", "original", "cv_pct", "max_shift_pct", "verdict"]]
+-                        .round(3).rename(columns={"cv_pct": "CV %", "max_shift_pct": "worst shift %"}),
+-                        width="stretch", hide_index=True,
+-                    )
+-                    worst = per_trait.sort_values("cv_pct").iloc[-1]
+-                    verdict("noise floor",
+-                            f"{worst.trait} moves by {worst.cv_pct:.2f}% across replicates — "
+-                            "treat that as the smallest difference this pipeline can resolve.",
+-                            "reliability")
+-            else:
+-                empty_note("Not run yet. It re-measures one tray four times, so it takes about "
+-                           "four times a single photograph.")
+-
+-    with tabs[3]:
+-        drift, grid = s6.position_drift(seeds, result.trait_menu[:6], cfg.reliability)
+-        if drift.empty:
+-            empty_note("Not enough seeds to test for a position effect.")
+-        else:
+-            st.dataframe(
+-                drift[["trait", "slope_x_pct", "slope_y_pct", "r2", "n", "reading"]].round(3)
+-                .rename(columns={"slope_x_pct": "left→right %", "slope_y_pct": "top→bottom %"}),
+-                width="stretch", hide_index=True,
+-            )
+-            note("Seeds are laid out at random, so where a seed sits should tell you nothing "
+-                 "about its size. When it does, the cause is the camera: vignetting, a lamp "
+-                 "on one side, or the lens stretching the corners.")
+-            if not grid.empty:
+-                trait = grid.attrs.get("trait")
+-                pivot = grid.pivot(index="row", columns="col", values="pct_of_frame_mean")
+-                fig = go.Figure(go.Heatmap(z=pivot.values, colorscale="RdYlBu_r", zmid=100,
+-                                           colorbar=dict(title="% of mean")))
+-                fig.update_yaxes(autorange="reversed", visible=False)
+-                fig.update_xaxes(visible=False)
+-                st.plotly_chart(style_fig(fig, 300, f"{trait} by position in frame"),
+-                                width="stretch")
+-
+-    with tabs[4]:
+-        note("Photograph one tray twice without disturbing it. The seeds are paired by "
+-             "position, and the difference between the two readings of each seed is the "
+-             "error bar you can put on a single measurement.")
+-        names = sorted(seeds.image.unique())
+-        if len(names) < 2:
+-            empty_note("Two photographs of the same tray are needed. Upload a second shot "
+-                       "and re-run.")
+-        else:
+-            c1, c2, c3 = st.columns(3)
+-            a = c1.selectbox("First photograph", names, key="match_a")
+-            b = c2.selectbox("Second photograph", names, index=1, key="match_b")
+-            trait = c3.selectbox("Trait", result.trait_menu, key="match_trait")
+-            matched = s6.match_seeds(seeds[seeds.image == a], seeds[seeds.image == b],
+-                                     cfg.reliability)
+-            if matched.empty or f"{trait}_diff" not in matched.columns:
+-                empty_note("No seeds paired up. If the tray moved between shots, the pairing "
+-                           "cannot be trusted and this check does not apply.")
+-            else:
+-                summ = s6.matching_summary(matched, trait)
+-                cols = st.columns(4)
+-                cols[0].metric("pairs", summ["pairs"])
+-                cols[1].metric("bias", f"{summ['bias']:+.3f}")
+-                cols[2].metric("SD of difference", f"{summ['sd_of_difference']:.3f}")
+-                cols[3].metric("repeatability CV", f"{summ['repeatability_cv_pct']:.2f}%")
+-                fig = go.Figure(go.Scatter(
+-                    x=matched[f"{trait}_a"], y=matched[f"{trait}_b"], mode="markers",
+-                    marker=dict(size=7, color=STAGE_COLORS["reliability"]),
+-                ))
+-                lo = float(min(matched[f"{trait}_a"].min(), matched[f"{trait}_b"].min()))
+-                hi = float(max(matched[f"{trait}_a"].max(), matched[f"{trait}_b"].max()))
+-                fig.add_trace(go.Scatter(x=[lo, hi], y=[lo, hi], mode="lines",
+-                                         line=dict(color=INK, dash="dot"), showlegend=False))
+-                fig.update_xaxes(title=f"{trait} — first shot")
+-                fig.update_yaxes(title=f"{trait} — second shot")
+-                fig.update_layout(showlegend=False)
+-                st.plotly_chart(style_fig(fig, 380, "The same seeds, measured twice"),
+-                                width="stretch")
+-
+-
+-# ---------------------------------------------------------------------------
+-# 7 — external validation
+-# ---------------------------------------------------------------------------
+-
+-def panel_validation(result, images: dict, cfg) -> None:
+-    panel_head(7, "External validation",
+-               "Caliper a sub-sample and compare. Self-consistency shows the pipeline "
+-               "repeats itself; only this shows it is right.", "validation")
+-
+-    seeds = result.seeds
+-    if result.units != "mm":
+-        empty_note("Validation compares millimetres with millimetres. Set the scale in the "
+-                   "sidebar first.")
+-        return
+-
+-    c1, c2 = st.columns([1, 1])
+-    with c1:
+-        st.markdown("**1 · Take a blank sheet**")
+-        n = st.number_input("Seeds to measure", 10, 200, 25, 5, key="val_n")
+-        template = s7.reference_template(seeds, int(n), cfg.validation.traits)
+-        st.download_button(
+-            "Download the caliper sheet", template.to_csv(index=False).encode("utf-8"),
+-            "caliper_sheet.csv", "text/csv", width="stretch",
+-        )
+-        muted_caption("A random sub-sample, so the check is honest at both ends of the size "
+-                      "distribution. Measure those seeds, type the numbers into the empty "
+-                      "columns, and upload it below.")
+-    with c2:
+-        st.markdown("**2 · Upload the measurements**")
+-        ref_file = st.file_uploader("Caliper CSV", type=["csv"], key="val_ref",
+-                                    label_visibility="collapsed")
+-        join = st.radio(
+-            "Pairing", ["seed_id", "rank"], horizontal=True, key="val_join",
+-            help="seed_id pairs by the ids on the sheet. rank pairs by size order within "
+-                 "each photograph — only right if the same seeds were measured.",
+-        )
+-
+-    if ref_file is None:
+-        empty_note("No caliper measurements yet. Everything else in this app is the pipeline "
+-                   "checking its own work; this panel is the only one that can tell you the "
+-                   "numbers are true.")
+-        return
+-
+-    try:
+-        df_ref = pd.read_csv(ref_file)
+-    except Exception as exc:                      # noqa: BLE001
+-        st.error(f"That CSV could not be read: {exc}")
+-        return
+-
+-    vcfg = cfg.validation
+-    vcfg.join_on = join
+-    available = tuple(t for t in vcfg.traits if t in df_ref.columns)
+-    if not available:
+-        st.error(
+-            "None of the expected trait columns are in that file. It needs at least one of: "
+-            + ", ".join(vcfg.traits)
+-        )
+-        return
+-    vcfg.traits = available
+-
+-    summary, paired = s7.validate(seeds, df_ref, vcfg)
+-    if summary.empty:
+-        st.error("No seeds paired up. Check that the image names match the ones in the run.")
+-        return
+-
+-    st.session_state["validation_summary"] = summary
+-    st.dataframe(
+-        summary.round(4).rename(columns={
+-            "r2": "R²", "ccc": "concordance", "rmse": "RMSE", "mae": "MAE",
+-            "bias_pct": "bias %", "loa_low": "LoA low", "loa_high": "LoA high",
+-        }),
+-        width="stretch", hide_index=True,
+-    )
+-    for _, row in summary.iterrows():
+-        verdict(row.trait, row.verdict, "validation")
+-
+-    trait = st.selectbox("Trait to plot", list(paired), key="val_trait")
+-    d = paired[trait]
+-    stats = summary[summary.trait == trait].iloc[0]
+-
+-    g1, g2 = st.columns(2)
+-    with g1:
+-        fig = go.Figure(go.Scatter(
+-            x=d.reference, y=d.measured, mode="markers",
+-            marker=dict(size=7, color=STAGE_COLORS["validation"]),
+-        ))
+-        lo = float(min(d.reference.min(), d.measured.min()))
+-        hi = float(max(d.reference.max(), d.measured.max()))
+-        fig.add_trace(go.Scatter(x=[lo, hi], y=[lo, hi], mode="lines", name="1:1",
+-                                 line=dict(color=INK, dash="dot")))
+-        xs = np.linspace(lo, hi, 20)
+-        fig.add_trace(go.Scatter(x=xs, y=stats.slope * xs + stats.intercept, mode="lines",
+-                                 name="fit", line=dict(color="#C86A4E")))
+-        fig.update_xaxes(title="calipers (mm)")
+-        fig.update_yaxes(title="image (mm)")
+-        st.plotly_chart(style_fig(fig, 380, f"R² {stats.r2:.3f} · RMSE {stats.rmse:.3f} mm"),
+-                        width="stretch")
+-    with g2:
+-        fig = go.Figure(go.Scatter(
+-            x=d.mean_of_pair, y=d.difference, mode="markers",
+-            marker=dict(size=7, color=STAGE_COLORS["validation"]),
+-        ))
+-        for y, label, dash in (
+-            (stats.bias, "bias", "solid"),
+-            (stats.loa_low, "lower limit", "dash"),
+-            (stats.loa_high, "upper limit", "dash"),
+-        ):
+-            fig.add_hline(y=y, line_dash=dash, line_color=MUTED,
+-                          annotation_text=f"{label} {y:+.3f}", annotation_position="right")
+-        fig.update_xaxes(title="mean of the two measurements (mm)")
+-        fig.update_yaxes(title="image − calipers (mm)")
+-        st.plotly_chart(style_fig(fig, 380, "Bland–Altman"), width="stretch")
+-
+-    note("The left plot shows whether the two move together; the right shows whether they "
+-         "agree. A pipeline that reads every seed 5% long sits perfectly on the left plot "
+-         "and well off zero on the right, which is the failure this panel exists to catch.")
+-
+-
+-# ---------------------------------------------------------------------------
+-# final outputs
+-# ---------------------------------------------------------------------------
+-
+-def panel_outputs(result, images: dict, cfg) -> None:
+-    panel_head(8, "Final outputs",
+-               "The tables that leave the app: every seed, the lot summary, the shape "
+-               "atlas, and the files to hand to a collaborator.", "outputs")
+-
+-    seeds = result.seeds
+-    tabs = st.tabs(["Lot statistics", "Shape atlas", "Shape PCA", "Per-seed table", "Download"])
+-
+-    with tabs[0]:
+-        st.dataframe(result.lot_stats.round(3), width="stretch", hide_index=True)
+-        if not result.composition.empty:
+-            st.markdown("**Composition**")
+-            st.dataframe(result.composition.round(1), width="stretch", hide_index=True)
+-        if not result.per_image.empty:
+-            st.markdown("**By photograph**")
+-            st.dataframe(result.per_image.round(3), width="stretch", hide_index=True)
+-            note("Trays of one lot should agree. One tray sitting apart from the others is "
+-                 "usually a photography difference, and panel 1 will normally say which.")
+-
+-    with tabs[1]:
+-        efds = {k: v for k, v in result.efd.items() if v is not None}
+-        if len(efds) < 3:
+-            empty_note("At least three traced seeds are needed to draw the atlas.")
+-        else:
+-            keys = list(efds)[:cfg.shape.atlas_max_outlines]
+-            curves = [shp.efd_reconstruct(efds[k]) for k in keys]
+-            mx, my = shp.efd_reconstruct(shp.mean_shape(efds))
+-            faint = dict(width=1, color="rgba(18,33,29,0.13)")
+-            average = go.Scatter(x=mx, y=my, mode="lines", name="lot average",
+-                                 line=dict(width=3, color=STAGE_COLORS["outputs"]))
+-
+-            # Frames stack the outlines on a few at a time. A bundle that looks
+-            # solid when finished shows how tight it really is while it builds.
+-            step = max(1, len(curves) // 40)
+-            frames = []
+-            for i in range(step, len(curves) + step, step):
+-                i = min(i, len(curves))
+-                frames.append(go.Frame(name=str(i), data=[
+-                    *(go.Scatter(x=x, y=y, mode="lines", showlegend=False,
+-                                 line=faint, hoverinfo="skip") for x, y in curves[:i]),
+-                    average,
+-                ]))
+-
+-            fig = go.Figure(
+-                data=[
+-                    *(go.Scatter(x=x, y=y, mode="lines", showlegend=False,
+-                                 line=faint, hoverinfo="skip") for x, y in curves),
+-                    average,
+-                ],
+-                frames=frames,
+-            )
+-            fig.update_xaxes(scaleanchor="y", visible=False)
+-            fig.update_yaxes(visible=False)
+-            style_fig(fig, 480, f"{len(keys)} outlines, size and rotation removed")
+-            st.plotly_chart(motion.atlas_animation(fig, len(curves)), width="stretch")
+-            note("Every outline normalised and stacked on the lot average. An outline far "
+-                 "from the bundle is usually a segmentation failure rather than an unusual "
+-                 "seed — panel 3 will show which.")
+-
+-    with tabs[2]:
+-        model = result.pca_model
+-        if not model:
+-            empty_note("Not enough traced outlines for a shape PCA.")
+-        else:
+-            exp = model["explained"]
+-            c1, c2 = st.columns([1.3, 1])
+-            with c1:
+-                pcx = st.selectbox("Horizontal", range(1, model["n_components"] + 1),
+-                                   index=0, format_func=lambda i: f"PC{i}", key="pcx")
+-                pcy = st.selectbox("Vertical", range(1, model["n_components"] + 1),
+-                                   index=min(1, model["n_components"] - 1),
+-                                   format_func=lambda i: f"PC{i}", key="pcy")
+-                key_index = {k: i for i, k in enumerate(result.pca_keys)}
+-                idx = [key_index.get((r.image, r.seed_id)) for r in seeds.itertuples()]
+-                mask = [i is not None for i in idx]
+-                sub = seeds[mask]
+-                rows = [i for i in idx if i is not None]
+-                fig = go.Figure()
+-                for cls, g in sub.groupby("cls"):
+-                    sel = [key_index[(r.image, r.seed_id)] for r in g.itertuples()]
+-                    fig.add_trace(go.Scatter(
+-                        x=model["scores"][sel, pcx - 1], y=model["scores"][sel, pcy - 1],
+-                        mode="markers", name=cls,
+-                        marker=dict(size=6, color=CLASS_COLORS.get(cls, DEFAULT_CLASS_COLOR)),
+-                    ))
+-                fig.update_xaxes(title=f"PC{pcx} ({100 * exp[pcx - 1]:.1f}%)")
+-                fig.update_yaxes(title=f"PC{pcy} ({100 * exp[pcy - 1]:.1f}%)")
+-                st.plotly_chart(style_fig(fig, 400, "Outline shape, reduced to two axes"),
+-                                width="stretch")
+-                _ = rows
+-            with c2:
+-                st.markdown(f"**What PC{pcx} means**")
+-                extremes = shp.shape_along_pc(model, cfg.shape.harmonics, pcx - 1)
+-                if extremes:
+-                    fig = go.Figure()
+-                    for (x, y), label, colour in zip(
+-                        extremes, ("−2 SD", "+2 SD"), ("#9AA8A2", STAGE_COLORS["outputs"])
+-                    ):
+-                        fig.add_trace(go.Scatter(x=x, y=y, mode="lines", name=label,
+-                                                 line=dict(width=2.5, color=colour)))
+-                    fig.update_xaxes(scaleanchor="y", visible=False)
+-                    fig.update_yaxes(visible=False)
+-                    st.plotly_chart(style_fig(fig, 400), width="stretch")
+-                muted_caption("The two outlines a seed would have at either end of this axis. "
+-                              "The component scores are in the per-seed table as shape_pc1 "
+-                              "onwards, ready to use as traits.")
+-
+-    with tabs[3]:
+-        cols = st.multiselect(
+-            "Columns", list(export.clean(seeds).columns),
+-            default=[c for c in ["image", "seed_id", "cls", "confidence", "pattern_class",
+-                                 *(CORE_TRAITS_MM if result.units == "mm" else CORE_TRAITS_PX)[:5],
+-                                 "roundness", "solidity"] if c in seeds.columns],
+-            key="table_cols",
+-        )
+-        st.dataframe(export.clean(seeds)[cols] if cols else export.clean(seeds),
+-                     width="stretch", height=460, hide_index=True)
+-
+-    with tabs[4]:
+-        validation = st.session_state.get("validation_summary")
+-
+-        st.markdown("**The whole run as one page**")
+-        r1, r2 = st.columns([1, 3])
+-        with r1:
+-            st.download_button(
+-                "HTML report", export_report(result, validation),
+-                f"{cfg.lot_id}_report.html", "text/html", width="stretch",
+-                type="primary",
+-            )
+-        with r2:
+-            note("One file, nothing beside it: the annotated trays are embedded and the "
+-                 "charts are drawn into the page, so it opens the same on a machine with "
+-                 "no network. Print it to PDF from the browser for a supervisor or a "
+-                 "supplementary file.")
+-
+-        st.markdown("**Tables**")
+-        d1, d2, d3, d4 = st.columns(4)
+-        with d1:
+-            st.download_button("Per-seed CSV", export.to_csv_bytes(seeds),
+-                               "lentil_per_seed.csv", "text/csv", width="stretch")
+-        with d2:
+-            st.download_button(
+-                "Excel workbook", export.to_excel_bytes(result, validation),
+-                "lentil_phenotypes.xlsx",
+-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+-                width="stretch",
+-            )
+-        with d3:
+-            st.download_button("JSON", export.to_json_bytes(result, validation),
+-                               "lentil_phenotypes.json", "application/json", width="stretch")
+-        with d4:
+-            st.download_button(
+-                "Everything (ZIP)", export.to_zip_bytes(result, validation),
+-                "lentil_results.zip", "application/zip", width="stretch",
+-            )
+-        note("The ZIP carries the tables, the report, the annotated trays, the data "
+-             "dictionary and the exact settings this run used — enough for someone else "
+-             "to repeat it.")
+-
+-        st.markdown("**Annotated photographs**")
+-        a1, a2, a3 = st.columns([1.4, 1, 1])
+-        with a1:
+-            pick = st.selectbox("Photograph", list(result.annotated), key="dl_img")
+-        with a2:
+-            fmt = st.radio("Format", ["png", "jpg"], horizontal=True, key="dl_fmt",
+-                           help="PNG keeps the drawn outlines crisp; JPEG is smaller.")
+-        with a3:
+-            st.markdown("<div style='height:1.8rem'></div>", unsafe_allow_html=True)
+-            st.download_button(
+-                "Download this tray",
+-                export.annotated_bytes(result.annotated[pick], fmt),
+-                export.annotated_name(pick, fmt), f"image/{fmt}", width="stretch",
+-            )
+-        b1, b2 = st.columns([1, 3])
+-        with b1:
+-            st.download_button(
+-                f"All {len(result.annotated)} trays (ZIP)",
+-                export.annotated_zip_bytes(result.annotated, fmt),
+-                f"{cfg.lot_id}_annotated_{fmt}.zip", "application/zip", width="stretch",
+-            )
+-        with b2:
+-            note("Boxes, traced outlines, per-seed class labels and the count badge, drawn "
+-                 "at the photograph's own resolution — figure-ready as they are.")
+-
+-        hline()
+-
+-        st.markdown("**GWAS-ready trait table**")
+-        level = st.radio("One row per", ["lot", "photograph"], horizontal=True, key="gwas_level")
+-        wide = lotstats.gwas_wide(seeds, result.trait_menu, cfg.lot_id,
+-                                  by="image" if level == "photograph" else "lot")
+-        st.dataframe(wide.round(4), width="stretch", hide_index=True)
+-        st.download_button("Download the wide table", wide.to_csv(index=False).encode("utf-8"),
+-                           "lentil_traits_wide.csv", "text/csv")
+-
+-        st.markdown("**What every column means**")
+-        st.dataframe(export.data_dictionary_frame(), width="stretch", hide_index=True,
+-                     height=280)
+diff --git a/report.py b/report.py
+deleted file mode 100644
+index eb7bf9d..0000000
+--- a/report.py
++++ /dev/null
+@@ -1,371 +0,0 @@
+-"""
+-The run as a single HTML file.
+-
+-One file, no folder of assets beside it: the annotated trays are embedded as
+-data URIs and the charts are drawn as inline SVG, so the report can be emailed,
+-attached to a supervisor's message, or opened from a USB stick years later and
+-still look the same. It prints to PDF cleanly from any browser.
+-
+-Charts are drawn here rather than by a plotting library, because a report that
+-depends on Plotly's CDN is a report that goes blank the first time it is opened
+-without a network.
+-
+-    Path("report.html").write_bytes(build_html(result, validation))
+-"""
+-from __future__ import annotations
+-
+-import base64
+-import html
+-from datetime import datetime, timezone
+-
+-import cv2
+-import numpy as np
+-import pandas as pd
+-
+-from .config import COLOUR_TRAITS, PATTERN_TRAITS
+-from .export import clean, data_dictionary_frame
+-
+-INK = "#12211D"
+-MUTED = "#6F7B76"
+-LINE = "#E2E6E3"
+-PAPER = "#FAFBFA"
+-STAGE = {
+-    "acquire": "#2E6FA8", "detect": "#3C8B57", "segment": "#C08430",
+-    "phenotype": "#4E9A51", "physical": "#7659A6", "reliability": "#B24C87",
+-    "validation": "#2E86A0", "outputs": "#D2762C",
+-}
+-
+-
+-# ---------------------------------------------------------------------------
+-# pieces
+-# ---------------------------------------------------------------------------
+-
+-def _esc(x) -> str:
+-    return html.escape(str(x))
+-
+-
+-def _jpeg_uri(img: np.ndarray, max_width: int = 1400, quality: int = 82) -> str:
+-    h, w = img.shape[:2]
+-    if w > max_width:
+-        scale = max_width / w
+-        img = cv2.resize(img, (max_width, int(h * scale)), interpolation=cv2.INTER_AREA)
+-    ok, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, quality])
+-    if not ok:
+-        return ""
+-    return "data:image/jpeg;base64," + base64.b64encode(enc.tobytes()).decode()
+-
+-
+-def _table(df: pd.DataFrame, digits: int = 3, max_rows: int | None = 60) -> str:
+-    if df is None or df.empty:
+-        return '<p class="muted">Nothing to show here.</p>'
+-    d = df.copy()
+-    truncated = max_rows is not None and len(d) > max_rows
+-    if truncated:
+-        d = d.head(max_rows)
+-    d = d.round(digits)
+-
+-    head = "".join(f"<th>{_esc(c)}</th>" for c in d.columns)
+-    rows = "".join(
+-        "<tr>" + "".join(f"<td>{_esc(v)}</td>" for v in row) + "</tr>"
+-        for row in d.itertuples(index=False)
+-    )
+-    note = (f'<p class="muted">First {max_rows} of {len(df):,} rows. '
+-            "The full table is in the CSV export.</p>") if truncated else ""
+-    return f"<table><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table>{note}"
+-
+-
+-def _histogram(values: pd.Series, label: str, colour: str,
+-               width: int = 620, height: int = 190, bins: int = 30) -> str:
+-    """A histogram as inline SVG — no library, no network."""
+-    v = pd.to_numeric(values, errors="coerce").replace([np.inf, -np.inf], np.nan).dropna()
+-    if len(v) < 3:
+-        return ""
+-    counts, edges = np.histogram(v, bins=bins)
+-    if counts.max() == 0:
+-        return ""
+-
+-    pad_l, pad_b, pad_t = 42, 26, 10
+-    plot_w, plot_h = width - pad_l - 12, height - pad_b - pad_t
+-    bar_w = plot_w / len(counts)
+-
+-    bars = "".join(
+-        f'<rect x="{pad_l + i * bar_w:.1f}" y="{pad_t + plot_h - c / counts.max() * plot_h:.1f}" '
+-        f'width="{max(1.0, bar_w - 1):.1f}" height="{c / counts.max() * plot_h:.1f}" '
+-        f'fill="{colour}" opacity="0.85"/>'
+-        for i, c in enumerate(counts)
+-    )
+-    mean_x = pad_l + (v.mean() - edges[0]) / (edges[-1] - edges[0]) * plot_w
+-    ticks = "".join(
+-        f'<text x="{pad_l + f * plot_w:.0f}" y="{height - 8}" text-anchor="middle" '
+-        f'class="tick">{edges[0] + f * (edges[-1] - edges[0]):.2f}</text>'
+-        for f in (0, 0.5, 1.0)
+-    )
+-    return f"""
+-<figure>
+-  <svg viewBox="0 0 {width} {height}" width="100%" role="img" aria-label="{_esc(label)}">
+-    <line x1="{pad_l}" y1="{pad_t + plot_h}" x2="{width - 12}" y2="{pad_t + plot_h}"
+-          stroke="{LINE}"/>
+-    {bars}
+-    <line x1="{mean_x:.1f}" y1="{pad_t}" x2="{mean_x:.1f}" y2="{pad_t + plot_h}"
+-          stroke="{INK}" stroke-dasharray="3 3"/>
+-    <text x="{mean_x:.1f}" y="{pad_t - 1}" text-anchor="middle" class="tick">mean</text>
+-    <text x="4" y="{pad_t + 10}" class="tick">{counts.max()}</text>
+-    <text x="4" y="{pad_t + plot_h}" class="tick">0</text>
+-    {ticks}
+-  </svg>
+-  <figcaption>{_esc(label)} — n = {len(v):,}, mean {v.mean():.3f}, SD {v.std(ddof=1):.3f}</figcaption>
+-</figure>"""
+-
+-
+-def _bars(counts: pd.Series, label: str, colour: str, width: int = 620) -> str:
+-    if counts is None or counts.empty:
+-        return ""
+-    rows = []
+-    top = counts.max()
+-    for name, n in counts.items():
+-        pct = 100 * n / counts.sum()
+-        rows.append(
+-            f'<div class="bar"><span class="bl">{_esc(name)}</span>'
+-            f'<span class="bt"><i style="width:{100 * n / top:.1f}%;background:{colour}"></i></span>'
+-            f'<span class="bn">{n:,} · {pct:.0f}%</span></div>'
+-        )
+-    return f'<div class="bars" aria-label="{_esc(label)}">{"".join(rows)}</div>'
+-
+-
+-def _readings(items: list[tuple[str, str]]) -> str:
+-    cells = "".join(
+-        f'<div class="reading"><div class="val">{_esc(v)}</div>'
+-        f'<div class="lab">{_esc(lab)}</div></div>' for v, lab in items
+-    )
+-    return f'<div class="readings">{cells}</div>'
+-
+-
+-def _section(number: int | None, title: str, stage: str, body: str,
+-             blurb: str = "") -> str:
+-    colour = STAGE.get(stage, INK)
+-    tag = f'<span class="n" style="background:{colour}">{number}</span>' if number else ""
+-    sub = f'<p class="sub">{blurb}</p>' if blurb else ""
+-    return (f'<section><h2>{tag}{_esc(title)}</h2>{sub}{body}</section>')
+-
+-
+-# ---------------------------------------------------------------------------
+-# the report
+-# ---------------------------------------------------------------------------
+-
+-CSS = f"""
+-:root {{ --ink:{INK}; --muted:{MUTED}; --line:{LINE}; --paper:{PAPER}; }}
+-* {{ box-sizing:border-box; }}
+-body {{ font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+-  color:var(--ink); background:var(--paper); margin:0; padding:2.2rem 1.4rem 4rem;
+-  line-height:1.55; }}
+-main {{ max-width:900px; margin:0 auto; }}
+-h1 {{ font-size:1.7rem; font-weight:600; letter-spacing:-.02em; margin:0 0 .2rem; }}
+-h2 {{ font-size:1.05rem; font-weight:600; margin:0 0 .2rem; display:flex; align-items:center;
+-  gap:.55rem; }}
+-h2 .n {{ color:#fff; font-family:'IBM Plex Mono',monospace; font-size:.75rem;
+-  border-radius:2px; padding:.05rem .38rem; }}
+-.lede {{ color:var(--muted); margin:.1rem 0 1.4rem; }}
+-.sub {{ color:var(--muted); font-size:.9rem; margin:.1rem 0 .8rem; max-width:74ch; }}
+-section {{ background:#fff; border:1px solid var(--line); border-radius:4px;
+-  padding:1.1rem 1.2rem; margin:0 0 1rem; }}
+-.readings {{ display:flex; flex-wrap:wrap; margin:.2rem 0 1.2rem; }}
+-.reading {{ flex:1 1 140px; padding:.1rem 1rem; border-left:1px solid var(--line); }}
+-.reading:first-child {{ border-left:2px solid {STAGE['outputs']}; }}
+-.reading .val {{ font-family:'IBM Plex Mono',monospace; font-size:1.45rem; font-weight:500;
+-  font-variant-numeric:tabular-nums; }}
+-.reading .lab {{ font-size:.76rem; color:var(--muted); }}
+-table {{ border-collapse:collapse; width:100%; font-size:.8rem;
+-  font-variant-numeric:tabular-nums; }}
+-th, td {{ text-align:left; padding:.32rem .5rem; border-bottom:1px solid var(--line);
+-  white-space:nowrap; }}
+-th {{ color:var(--muted); font-weight:500; font-size:.74rem; }}
+-.scroll {{ overflow-x:auto; }}
+-.muted {{ color:var(--muted); font-size:.82rem; }}
+-figure {{ margin:.6rem 0 1rem; }}
+-figcaption {{ color:var(--muted); font-size:.78rem; margin-top:.2rem; }}
+-.tick {{ font-family:'IBM Plex Mono',monospace; font-size:10px; fill:{MUTED}; }}
+-.bars {{ margin:.4rem 0 .8rem; }}
+-.bar {{ display:flex; align-items:center; gap:.6rem; font-size:.82rem; margin-bottom:.28rem; }}
+-.bl {{ width:11rem; }}
+-.bt {{ flex:1; background:var(--paper); border:1px solid var(--line); height:12px; }}
+-.bt i {{ display:block; height:100%; }}
+-.bn {{ width:8rem; text-align:right; font-family:'IBM Plex Mono',monospace;
+-  color:var(--muted); font-size:.76rem; }}
+-.tray {{ margin:0 0 1.2rem; }}
+-.tray img {{ width:100%; border:1px solid var(--line); border-radius:3px; display:block; }}
+-.tray .cap {{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace;
+-  font-size:.75rem; color:var(--muted); padding-top:.3rem; }}
+-.note {{ border-left:2px solid var(--line); padding:.1rem 0 .1rem .75rem; color:var(--muted);
+-  font-size:.85rem; margin:.4rem 0; max-width:78ch; }}
+-.flag {{ border-left-color:{STAGE['outputs']}; }}
+-footer {{ color:var(--muted); font-size:.78rem; text-align:center; margin-top:1.4rem; }}
+-@media print {{
+-  body {{ background:#fff; padding:0; }}
+-  section {{ break-inside:avoid; border:none; border-top:1px solid var(--line);
+-    border-radius:0; padding:.8rem 0; }}
+-  .tray {{ break-inside:avoid; }}
+-}}
+-"""
+-
+-
+-def build_html(result, validation: pd.DataFrame | None = None,
+-               title: str = "Lentil seed phenotyping",
+-               include_images: bool = True, max_table_rows: int = 60) -> bytes:
+-    """Render the whole run as one standalone HTML document."""
+-    from . import lotstats
+-
+-    seeds = clean(result.seeds)
+-    stamp = datetime.now(timezone.utc).strftime("%d %B %Y, %H:%M UTC")
+-    lot = result.config.get("lot_id", "lot")
+-    units = result.units
+-    parts: list[str] = []
+-
+-    # ---- headline ---------------------------------------------------------
+-    parts.append(_readings(lotstats.headline(seeds, units)))
+-    if units == "px":
+-        parts.append('<p class="note flag">This run was uncalibrated, so every size is in '
+-                     'pixels. No volume, mass or thousand-seed weight was derived.</p>')
+-
+-    # ---- 1 photographs ----------------------------------------------------
+-    qc = result.qc
+-    cols = [c for c in ["image", "megapixels", "focus", "clip_frac", "illum_cv",
+-                        "seed_width_px", "n_seeds", "size_grade", "qc_pass", "qc_reason"]
+-            if c in qc.columns]
+-    body = _table(qc[cols], 3, None)
+-    failed = qc[~qc.qc_pass] if "qc_pass" in qc.columns else pd.DataFrame()
+-    if not failed.empty:
+-        body += "".join(
+-            f'<p class="note flag"><b>{_esc(r.image)}</b> — {_esc(r.qc_reason)}</p>'
+-            for r in failed.itertuples()
+-        )
+-    parts.append(_section(1, "Image acquisition & quality control", "acquire", body,
+-                          "Whether each photograph was fit to measure, judged before "
+-                          "anything was measured from it."))
+-
+-    # ---- 2 detection ------------------------------------------------------
+-    body = _table(result.detection, 3, None)
+-    if "cls" in seeds.columns:
+-        body += _bars(seeds["cls"].value_counts(), "seeds per class", STAGE["detect"])
+-    if include_images and result.annotated:
+-        for name, img in result.annotated.items():
+-            n = int((seeds.image == name).sum())
+-            uri = _jpeg_uri(img)
+-            body += (f'<div class="tray"><img src="{uri}" alt="{_esc(name)}">'
+-                     f'<div class="cap"><span>{_esc(name)}</span>'
+-                     f"<span>{n} seeds</span></div></div>")
+-    parts.append(_section(2, "YOLO seed detection", "detect", body,
+-                          "Every visible seed found, with the duplicates that finding "
+-                          "everything costs removed afterwards."))
+-
+-    # ---- 3 outlines -------------------------------------------------------
+-    s = result.outline_summary
+-    body = ""
+-    if "segment_method" in seeds.columns:
+-        body += _bars(seeds.segment_method.value_counts(), "threshold used",
+-                      STAGE["segment"])
+-    if s:
+-        body += (f'<p class="note">Median outline error '
+-                 f'{s.get("median_error_pct", float("nan")):.2f}%, '
+-                 f'{s.get("flagged", 0)} of {len(seeds):,} outlines flagged for '
+-                 "inspection. The comparison is the traced area against the area an "
+-                 "ellipse of the same length and width would have.</p>")
+-    if "outline_error" in seeds.columns:
+-        body += _histogram(100 * seeds.outline_error, "Outline error (%)", STAGE["segment"])
+-    parts.append(_section(3, "Segmentation & contour extraction", "segment", body,
+-                          "Each seed thresholded inside its own detection box, so uneven "
+-                          "light across the tray cannot bias the outline."))
+-
+-    # ---- 4 phenotypes -----------------------------------------------------
+-    body = ""
+-    primary = "length_mm" if units == "mm" and "length_mm" in seeds.columns else "length_px"
+-    for trait, colour in ((primary, STAGE["phenotype"]),
+-                          ("roundness", STAGE["phenotype"])):
+-        if trait in seeds.columns:
+-            body += _histogram(seeds[trait], trait, colour)
+-    if "pattern_class" in seeds.columns:
+-        body += _bars(seeds.pattern_class.value_counts(), "coat pattern",
+-                      STAGE["phenotype"])
+-        cross = lotstats.agreement_table(seeds)
+-        if not cross.empty:
+-            body += ('<p class="sub">Detector class against coat pattern. These are two '
+-                     "independent readings of the same seeds — the pattern is derived from "
+-                     "pixels alone — so they will not match exactly.</p>"
+-                     f'<div class="scroll">{_table(cross.reset_index(), 0, None)}</div>')
+-    parts.append(_section(4, "Image-derived phenotypes", "phenotype", body,
+-                          "Shape and size from the outline, colour from the coat, and the "
+-                          "markings on it."))
+-
+-    # ---- 5 physical -------------------------------------------------------
+-    body = "".join(f'<p class="note">{_esc(n)}</p>' for n in result.notes)
+-    if result.tsw:
+-        t = result.tsw
+-        body += _readings([
+-            (f"{t['tsw_g']:.2f} g", "thousand-seed weight"),
+-            (f"± {t.get('tsw_ci95_g', float('nan')):.2f} g", "95% interval"),
+-            (f"{t['mean_mass_mg']:.2f} mg", "mean seed mass"),
+-            (f"{t.get('cv_mass_pct', float('nan')):.1f}%", "mass CV"),
+-        ])
+-    parts.append(_section(5, "Derived physical properties", "physical", body,
+-                          "What the millimetre columns rest on, stated rather than assumed."))
+-
+-    # ---- 6 reliability ----------------------------------------------------
+-    body = _table(result.checks, 3, None)
+-    body += ('<p class="note">Two boxes on one seed inflate the count; one box across two '
+-             "deflates it. Both survive a confidence threshold, which is why they are "
+-             "counted rather than assumed away.</p>")
+-    parts.append(_section(6, "Reliability & self-consistency", "reliability", body,
+-                          "Whether the pipeline agrees with itself. No ground truth needed."))
+-
+-    # ---- 7 validation -----------------------------------------------------
+-    if validation is not None and not validation.empty:
+-        body = _table(validation, 4, None)
+-        body += "".join(
+-            f'<p class="note"><b>{_esc(r.trait)}</b> — {_esc(r.verdict)}</p>'
+-            for r in validation.itertuples() if hasattr(r, "verdict")
+-        )
+-    else:
+-        body = ('<p class="note flag">No caliper measurements were supplied. Everything '
+-                "above is the pipeline checking its own work; only a caliper comparison "
+-                "can show the numbers are true.</p>")
+-    parts.append(_section(7, "External validation", "validation", body,
+-                          "Agreement with digital calipers on a measured sub-sample."))
+-
+-    # ---- outputs ----------------------------------------------------------
+-    body = f'<div class="scroll">{_table(result.lot_stats, 3, None)}</div>'
+-    if not result.composition.empty:
+-        body += (f'<h3 class="sub">Composition</h3>'
+-                 f'<div class="scroll">{_table(result.composition, 1, None)}</div>')
+-    colour_cols = [c for c in [*COLOUR_TRAITS, *PATTERN_TRAITS] if c in seeds.columns]
+-    show = [c for c in ["image", "seed_id", "cls", "pattern_class"] if c in seeds.columns]
+-    show += [c for c in seeds.columns if c.endswith(("_mm", "_mm2", "_mm3"))][:6]
+-    show += [c for c in ["roundness", "solidity"] if c in seeds.columns]
+-    show += colour_cols[:2]
+-    body += (f'<h3 class="sub">Per-seed measurements</h3>'
+-             f'<div class="scroll">{_table(seeds[show], 3, max_table_rows)}</div>')
+-    body += (f'<h3 class="sub">What every column means</h3>'
+-             f'<div class="scroll">{_table(data_dictionary_frame(), 0, None)}</div>')
+-    parts.append(_section(None, "Lot statistics and measurements", "outputs", body))
+-
+-    # ---- provenance -------------------------------------------------------
+-    cfg_rows = pd.DataFrame(
+-        [{"setting": k, "value": str(v)} for k, v in result.config.items()]
+-    )
+-    parts.append(_section(None, "How this run was configured", "outputs",
+-                          f'<div class="scroll">{_table(cfg_rows, 3, None)}</div>',
+-                          "Every setting the pipeline used, so the run can be repeated."))
+-
+-    return f"""<!DOCTYPE html>
+-<html lang="en"><head><meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>{_esc(title)} — {_esc(lot)}</title>
+-<link rel="preconnect" href="https://fonts.googleapis.com">
+-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+-<style>{CSS}</style></head>
+-<body><main>
+-<h1>{_esc(title)}</h1>
+-<p class="lede">{_esc(lot)} · {len(seeds):,} seeds across {seeds.image.nunique()} photographs ·
+-measured in {units} · {stamp}</p>
+-{"".join(parts)}
+-<footer>Generated by LentilSeedVision. The tables in this report are also in the CSV,
+-Excel and JSON exports; this file is the readable version of the same run.</footer>
+-</main></body></html>""".encode("utf-8")
+diff --git a/theme.py b/theme.py
+deleted file mode 100644
+index f7d4229..0000000
+--- a/theme.py
++++ /dev/null
+@@ -1,419 +0,0 @@
+-"""
+-Visual system.
+-
+-The instrument, not the dashboard. Colours are lifted from the printed workflow
+-figure — one hue per panel — so the app and the figure read as the same
+-document: blue for acquisition, green for detection, amber for segmentation,
+-leaf for phenotypes, violet for physical properties, magenta for reliability,
+-teal for validation, orange for outputs.
+-
+-Type is IBM Plex: Sans for prose, Mono for every measurement. Numbers that will
+-be compared down a column are set in tabular figures — a measuring instrument
+-should let you read a column without re-aligning your eye at each row.
+-
+-Two surfaces, not one
+----------------------
+-Light is a cool paper white; the seeds are warm browns and ambers and the sheet
+-should not compete with them. Dark is a deep green-black rather than a tinted
+-near-black, so the same eight stage hues stay recognisable against it.
+-
+-The palette is resolved once per rerun and pushed into the modules that
+-captured it, because `ui/panels.py` and `ui/components.py` do
+-`from .theme import INK, LINE, MUTED, CARD` at import time and feed those
+-values to Plotly, which needs concrete colours rather than CSS variables:
+-
+-    mode = theme.active_mode()
+-    st.markdown(theme.css(mode), unsafe_allow_html=True)
+-    theme.bind(mode, ui.panels, ui.components)
+-
+-`STAGE_COLORS` is mutated in place rather than rebound, so every module holding
+-a reference to that dict sees the change without being listed in `bind`.
+-"""
+-from __future__ import annotations
+-
+-import streamlit as st
+-
+-# ---------------------------------------------------------------------------
+-# surfaces
+-# ---------------------------------------------------------------------------
+-
+-_SURFACE = {
+-    "light": {
+-        "paper": "#FAFBFA",
+-        "card": "#FFFFFF",
+-        "ink": "#12211D",
+-        "line": "#E2E6E3",
+-        "muted": "#697570",
+-        "sunk": "#F2F4F2",     # inset wells: dropzone, code, table stripes
+-        "ring": "#3C8B57",     # keyboard focus
+-        "swatch_ring": "rgba(18,33,29,.14)",
+-        "shadow": "rgba(18,33,29,.06)",
+-    },
+-    "dark": {
+-        "paper": "#101512",
+-        "card": "#171D1A",
+-        "ink": "#E8EEEA",
+-        "line": "#2A332E",
+-        "muted": "#8E9C95",
+-        "sunk": "#0B0F0D",
+-        "ring": "#6FBF8B",
+-        "swatch_ring": "rgba(232,238,234,.28)",
+-        "shadow": "rgba(0,0,0,.34)",
+-    },
+-}
+-
+-# One accent per workflow panel, matching the figure's panel headers.
+-#
+-# Each hue is used as type — the stage number in a panel head, a live chip, a
+-# lit segment of the spine — so both sets are pinned to at least 4.5:1 against
+-# their own card. The figure's own amber, leaf and orange sit near 3.2:1 on
+-# white, so the light set darkens those three while holding their hue; the dark
+-# set lifts all eight. Side by side the eight still read as the same family in
+-# the same order, which is the only thing the mapping to the figure needs.
+-_STAGES = {
+-    "light": {
+-        "acquire": "#2E6FA8",
+-        "detect": "#388251",
+-        "segment": "#9A6A27",
+-        "phenotype": "#418144",
+-        "physical": "#7659A6",
+-        "reliability": "#B24C87",
+-        "validation": "#2B7D95",
+-        "outputs": "#AC6124",
+-    },
+-    "dark": {
+-        "acquire": "#7FB3E0",
+-        "detect": "#77C692",
+-        "segment": "#E3AC5E",
+-        "phenotype": "#8FCA92",
+-        "physical": "#B098DC",
+-        "reliability": "#E58FBB",
+-        "validation": "#6FBBD2",
+-        "outputs": "#F0A662",
+-    },
+-}
+-
+-# ---------------------------------------------------------------------------
+-# module-level constants — the light values are the import-time default, and
+-# `bind()` overwrites them (here and in the modules that captured them).
+-# ---------------------------------------------------------------------------
+-
+-PAPER = _SURFACE["light"]["paper"]
+-CARD = _SURFACE["light"]["card"]
+-INK = _SURFACE["light"]["ink"]
+-LINE = _SURFACE["light"]["line"]
+-MUTED = _SURFACE["light"]["muted"]
+-
+-STAGE_COLORS = dict(_STAGES["light"])
+-ACCENT = STAGE_COLORS["segment"]
+-
+-# Detector classes. These are drawn onto the tray photographs themselves, so
+-# they are fixed: a seed's coat colour does not depend on the reader's theme.
+-# Warm browns for the coat types, red only for defects, so a glance at an
+-# annotated tray separates "different seed" from "problem seed".
+-CLASS_COLORS = {
+-    "Black seeds": "#2B2B2B",
+-    "Defective": "#B4472F",
+-    "Dotted seeds": "#8E5B3A",
+-    "Marbled seeds": "#B08968",
+-    "Spotted seeds": "#D4A24C",
+-    "Unspotted seeds": "#E0C894",
+-}
+-DEFAULT_CLASS_COLOR = "#6E7F76"
+-
+-PATTERN_COLORS = {
+-    "plain": "#E0C894",
+-    "dotted": "#8E5B3A",
+-    "spotted": "#D4A24C",
+-    "marbled": "#B08968",
+-    "black": "#2B2B2B",
+-}
+-
+-
+-def hex_to_bgr(hex_color: str) -> tuple[int, int, int]:
+-    h = hex_color.lstrip("#")
+-    return tuple(int(h[i:i + 2], 16) for i in (4, 2, 0))
+-
+-
+-def class_colors_bgr() -> dict[str, tuple[int, int, int]]:
+-    return {k: hex_to_bgr(v) for k, v in CLASS_COLORS.items()}
+-
+-
+-def class_color(name) -> str:
+-    """Case-insensitive lookup, with a neutral for classes we don't publish."""
+-    key = str(name).strip().lower()
+-    for k, v in CLASS_COLORS.items():
+-        if k.lower() == key:
+-            return v
+-    return DEFAULT_CLASS_COLOR
+-
+-
+-# ---------------------------------------------------------------------------
+-# resolving and applying the palette
+-# ---------------------------------------------------------------------------
+-
+-def active_mode() -> str:
+-    """
+-    Whichever surface the reader is actually on.
+-
+-    Streamlit reports the resolved theme on `st.context.theme` from 1.46; older
+-    builds only know what the config file asked for. Either way this is a plain
+-    string, so the caller can override it from a toggle.
+-    """
+-    try:
+-        kind = st.context.theme.type
+-        if kind in ("light", "dark"):
+-            return kind
+-    except Exception:                                  # noqa: BLE001
+-        pass
+-    try:
+-        base = st.get_option("theme.base")
+-        if base in ("light", "dark"):
+-            return base
+-    except Exception:                                  # noqa: BLE001
+-        pass
+-    return "light"
+-
+-
+-def palette(mode: str = "light") -> dict[str, str]:
+-    surface = dict(_SURFACE.get(mode, _SURFACE["light"]))
+-    surface.update(_STAGES.get(mode, _STAGES["light"]))
+-    return surface
+-
+-
+-def bind(mode: str, *modules) -> dict[str, str]:
+-    """
+-    Point the Python-side colour constants at `mode` and return the palette.
+-
+-    Pass every module that did `from .theme import INK, ...` — their globals are
+-    rebound in place, so functions defined there pick up the new value on their
+-    next call. Anything reading `theme.STAGE_COLORS` needs no listing: that dict
+-    is updated, never replaced.
+-    """
+-    pal = palette(mode)
+-    named = {"PAPER": "paper", "CARD": "card", "INK": "ink",
+-             "LINE": "line", "MUTED": "muted"}
+-
+-    for namespace in (globals(), *(vars(m) for m in modules)):
+-        for const, key in named.items():
+-            if const in namespace:
+-                namespace[const] = pal[key]
+-
+-    STAGE_COLORS.update(_STAGES.get(mode, _STAGES["light"]))
+-    globals()["ACCENT"] = STAGE_COLORS["segment"]
+-    return pal
+-
+-
+-# ---------------------------------------------------------------------------
+-# stylesheet
+-# ---------------------------------------------------------------------------
+-
+-def css(mode: str = "light") -> str:
+-    p = palette(mode)
+-    return f"""
+-<style>
+-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+-
+-:root {{
+-  --ink:{p['ink']}; --paper:{p['paper']}; --card:{p['card']};
+-  --line:{p['line']}; --muted:{p['muted']}; --sunk:{p['sunk']};
+-  --ring:{p['ring']}; --swatch-ring:{p['swatch_ring']}; --shadow:{p['shadow']};
+-  --btn-ink:{'#FFFFFF' if mode == 'light' else '#12100A'};
+-  --s1:{p['acquire']}; --s2:{p['detect']}; --s3:{p['segment']}; --s4:{p['phenotype']};
+-  --s5:{p['physical']}; --s6:{p['reliability']}; --s7:{p['validation']}; --out:{p['outputs']};
+-  --sans:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+-  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+-}}
+-
+-html, body, [data-testid="stAppViewContainer"], .stMarkdown,
+-.stButton button, [data-testid="stSidebar"] {{ font-family:var(--sans); }}
+-
+-[data-testid="stAppViewContainer"], .stApp {{ background:var(--paper); color:var(--ink); }}
+-[data-testid="stHeader"] {{ background:transparent; }}
+-.block-container {{ padding-top:2rem; padding-bottom:4rem; max-width:1320px; }}
+-
+-/* Keyboard focus stays visible everywhere, including on our own markup. */
+-:focus-visible {{ outline:2px solid var(--ring); outline-offset:2px; border-radius:2px; }}
+-
+-/* masthead ---------------------------------------------------------------- */
+-.mast {{ display:flex; align-items:center; gap:.85rem; flex-wrap:wrap;
+-  border-bottom:1px solid var(--line); padding-bottom:.75rem; margin-bottom:.9rem; }}
+-.mast .mark {{ width:36px; height:36px; flex:none; color:var(--ink); }}
+-.mast .mark svg, .mast .mark img {{ width:36px; height:36px; display:block; }}
+-.mast h1 {{ font-size:1.5rem; font-weight:600; letter-spacing:-.015em;
+-  color:var(--ink); margin:0; line-height:1.15; }}
+-.mast p {{ margin:.15rem 0 0 0; color:var(--muted); font-size:.9rem; max-width:62ch; }}
+-.mast .grow {{ flex:1; }}
+-
+-/* instrument readout ------------------------------------------------------ */
+-.chipline {{ display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+-  font-family:var(--mono); font-size:.76rem; }}
+-.chip {{ border:1px solid var(--line); border-radius:2px; padding:.2rem .45rem;
+-  background:var(--card); color:var(--muted); white-space:nowrap; }}
+-.chip b {{ color:var(--ink); font-weight:500; }}
+-.chip.live {{ border-color:var(--s2); color:var(--s2); }}
+-.chip.warn {{ border-color:var(--out); color:var(--out); }}
+-.chip.off {{ border-style:dashed; }}
+-
+-/* the three-step rule ----------------------------------------------------- */
+-/* This content really is a sequence, so it is numbered; nothing else is. */
+-.steps {{ display:flex; gap:0; margin:.2rem 0 1.5rem 0; }}
+-.steps .s {{ flex:1; padding:.55rem .8rem 0 0; border-top:2px solid var(--line); }}
+-.steps .s.done {{ border-top-color:var(--s2); }}
+-.steps .s.now {{ border-top-color:var(--s3); }}
+-.steps .n {{ font-family:var(--mono); font-size:.72rem; color:var(--muted);
+-  font-variant-numeric:tabular-nums; }}
+-.steps .s.done .n {{ color:var(--s2); }}
+-.steps .s.now .n {{ color:var(--s3); }}
+-.steps .t {{ font-size:.86rem; color:var(--muted); line-height:1.3; }}
+-.steps .s.now .t {{ color:var(--ink); font-weight:600; }}
+-.steps .s.done .t {{ color:var(--ink); }}
+-
+-/* the seven-panel spine --------------------------------------------------- */
+-.spine {{ display:flex; gap:0; margin:1.1rem 0 1.3rem 0; border-top:1px solid var(--line);
+-  padding-top:.9rem; }}
+-.spine .p {{ flex:1; padding-right:.7rem; position:relative; min-width:0; }}
+-.spine .p::before {{ content:""; position:absolute; top:-.9rem; left:0; right:.7rem;
+-  height:2px; background:var(--line); }}
+-.spine .p.done::before, .spine .p.now::before {{ background:var(--c); }}
+-.spine .num {{ font-family:var(--mono); font-size:.72rem; color:var(--muted);
+-  font-variant-numeric:tabular-nums; }}
+-.spine .p.done .num, .spine .p.now .num {{ color:var(--c); }}
+-.spine .lab {{ font-size:.8rem; color:var(--muted); line-height:1.3; }}
+-.spine .p.done .lab {{ color:var(--ink); }}
+-.spine .p.now .lab {{ color:var(--ink); font-weight:600; }}
+-.spine .p.now::before {{ animation:pulse 1.2s ease-in-out infinite; }}
+-@keyframes pulse {{ 0%,100% {{ opacity:1; }} 50% {{ opacity:.3; }} }}
+-
+-/* readings ---------------------------------------------------------------- */
+-.readings {{ display:flex; flex-wrap:wrap; gap:0; margin:.2rem 0 1.1rem 0; }}
+-.reading {{ flex:1 1 145px; padding:.1rem 1rem; border-left:1px solid var(--line); }}
+-.reading:first-child {{ border-left:2px solid var(--c, var(--s3)); }}
+-.reading .val {{ font-family:var(--mono); font-size:1.6rem; font-weight:500;
+-  color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.2; }}
+-.reading .lab {{ font-size:.77rem; color:var(--muted); }}
+-
+-/* panel heading ----------------------------------------------------------- */
+-.phead {{ display:flex; align-items:baseline; gap:.6rem; margin:.3rem 0 .1rem 0; }}
+-.phead .n {{ font-family:var(--mono); font-size:.78rem; color:var(--paper);
+-  background:var(--c); border-radius:2px; padding:.05rem .38rem;
+-  font-variant-numeric:tabular-nums; }}
+-.phead h3 {{ font-size:1.02rem; font-weight:600; color:var(--ink); margin:0; }}
+-.psub {{ color:var(--muted); font-size:.87rem; margin:.15rem 0 .9rem 0; max-width:72ch; }}
+-
+-/* note -------------------------------------------------------------------- */
+-.note {{ border-left:2px solid var(--line); padding:.1rem 0 .1rem .75rem;
+-  color:var(--muted); font-size:.86rem; margin:.3rem 0 .9rem 0; max-width:78ch; }}
+-.note b {{ color:var(--ink); font-weight:600; }}
+-.note.flag {{ border-left-color:var(--out); }}
+-
+-/* verdict rows ------------------------------------------------------------ */
+-.verdict {{ display:flex; gap:.6rem; align-items:flex-start; padding:.5rem .7rem;
+-  background:var(--card); border:1px solid var(--line); border-left:3px solid var(--c);
+-  border-radius:3px; margin-bottom:.5rem; font-size:.87rem; color:var(--ink); }}
+-.verdict .k {{ font-family:var(--mono); color:var(--muted);
+-  min-width:9.5rem; font-size:.8rem; }}
+-
+-/* tray caption ------------------------------------------------------------ */
+-.cap {{ display:flex; justify-content:space-between; gap:.5rem;
+-  padding:.3rem .1rem .8rem .1rem; font-size:.78rem; color:var(--muted);
+-  border-top:1px solid var(--line); font-family:var(--mono); }}
+-.cap b {{ color:var(--ink); font-weight:500; }}
+-
+-/* photographs waiting to be measured -------------------------------------- */
+-.tray-grid {{ display:grid; gap:12px; margin:.9rem 0 1.2rem 0;
+-  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); }}
+-.tray {{ border:1px solid var(--line); background:var(--card); border-radius:3px;
+-  overflow:hidden; }}
+-.tray img {{ width:100%; display:block; aspect-ratio:4/3; object-fit:cover;
+-  background:var(--sunk); }}
+-.tray .f {{ padding:.35rem .5rem; font-family:var(--mono); font-size:.72rem;
+-  color:var(--muted); border-top:1px solid var(--line);
+-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+-
+-/* class composition ------------------------------------------------------- */
+-.class-grid {{ display:grid; gap:0; margin:.5rem 0 1.4rem 0;
+-  grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); }}
+-.class-tile {{ padding:.15rem 1rem; border-left:1px solid var(--line); min-width:0; }}
+-.class-tile:first-child {{ border-left:2px solid var(--c, var(--s3)); }}
+-.class-tile .name {{ display:flex; align-items:center; gap:.45rem; font-size:.82rem;
+-  color:var(--muted); line-height:1.35; }}
+-.class-tile .swatch {{ width:9px; height:9px; flex:none; border-radius:1px;
+-  box-shadow:inset 0 0 0 1px var(--swatch-ring); }}
+-.class-tile .count {{ font-family:var(--mono); font-size:1.5rem; font-weight:500;
+-  color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.25; }}
+-.class-tile .pct {{ font-family:var(--mono); font-size:.74rem; color:var(--muted);
+-  font-variant-numeric:tabular-nums; }}
+-.class-tile .bar {{ height:2px; background:var(--line); margin-top:.4rem; }}
+-.class-tile .bar i {{ display:block; height:2px; background:var(--c); }}
+-
+-/* seed contact sheet ------------------------------------------------------ */
+-.seed-grid {{ display:grid; gap:8px; margin:.5rem 0 1rem 0;
+-  grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); }}
+-.seed {{ border:1px solid var(--line); border-bottom:2px solid var(--c);
+-  background:var(--sunk); border-radius:2px; padding:5px; }}
+-.seed img {{ width:100%; aspect-ratio:1/1; object-fit:contain; display:block; }}
+-
+-/* chrome ------------------------------------------------------------------ */
+-[data-testid="stFileUploaderDropzone"] {{ background:var(--sunk);
+-  border:1px dashed var(--line); border-radius:3px; }}
+-[data-testid="stFileUploaderDropzone"]:hover {{ border-color:var(--s3); }}
+-[data-testid="stSidebar"] {{ border-right:1px solid var(--line); }}
+-[data-testid="stSidebar"] .stExpander {{ border:none; }}
+-[data-testid="stMetricValue"], .stDataFrame {{ font-variant-numeric:tabular-nums; }}
+-[data-testid="stExpander"] details {{ border:1px solid var(--line);
+-  border-radius:3px; background:var(--card); }}
+-
+-/* Tab strips scroll rather than wrap — five labels on a phone would otherwise
+-   stack into a block that pushes the results off the first screen. */
+-.stTabs [data-baseweb="tab-list"] {{ gap:.15rem; border-bottom:1px solid var(--line);
+-  overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap;
+-  scrollbar-width:none; -ms-overflow-style:none; }}
+-.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar {{ display:none; }}
+-.stTabs [data-baseweb="tab"] {{ font-size:.86rem; padding:.4rem .7rem; white-space:nowrap; }}
+-
+-.stButton button[kind="primary"] {{ background:var(--s3); border-color:var(--s3);
+-  color:var(--btn-ink); font-weight:600; }}
+-.stButton button[kind="primary"]:hover {{ filter:brightness(.94); }}
+-.stButton button[kind="secondary"] {{ background:var(--card); border-color:var(--line);
+-  color:var(--ink); }}
+-
+-/* narrow screens ---------------------------------------------------------- */
+-@media (max-width: 720px) {{
+-  .block-container {{ padding-top:1.1rem; padding-left:1rem; padding-right:1rem; }}
+-  .mast h1 {{ font-size:1.25rem; }}
+-  .mast p {{ font-size:.84rem; }}
+-
+-  /* The spine is a seven-across rule on a desktop. On a phone that is seven
+-     illegible columns, so it becomes one line: the stage you are on, and a
+-     rule showing how far along that is. */
+-  .spine {{ display:block; position:relative; padding-top:1rem; }}
+-  .spine .p {{ display:none; padding:0; }}
+-  .spine .p.now {{ display:block; }}
+-  .spine .p.now::before {{ right:0; }}
+-  .spine .num {{ display:inline; }}
+-  .spine .num::after {{ content:" / 7"; }}
+-  .spine .lab {{ display:inline; margin-left:.4rem; }}
+-
+-  .steps .s {{ padding-right:.4rem; }}
+-  .steps .t {{ font-size:.75rem; }}
+-  .reading {{ flex:1 1 50%; padding:.1rem .7rem; margin-bottom:.6rem; }}
+-  .reading .val {{ font-size:1.3rem; }}
+-  .tray-grid {{ grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); gap:8px; }}
+-  .seed-grid {{ grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:6px; }}
+-  .class-grid {{ grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); }}
+-  .class-tile {{ padding:.15rem .7rem; margin-bottom:.7rem; }}
+-  .verdict {{ flex-direction:column; gap:.15rem; }}
+-  .verdict .k {{ min-width:0; }}
+-}}
+-
+-@media (prefers-reduced-motion: reduce) {{
+-  *, .spine .p.now::before {{ animation:none !important; transition:none !important; }}
+-}}
+-</style>
+-"""
+-
+-
+-# Kept so anything still doing `from .theme import CSS` keeps working; new code
+-# should call `css(mode)`.
+-CSS = css("light")
+diff --git a/ui/components.py b/ui/components.py
+index 6bd2b1c..4001494 100644
+--- a/ui/components.py
++++ b/ui/components.py
+@@ -162,7 +162,7 @@ def style_fig(fig: go.Figure, height: int = 340, title: str | None = None) -> go
+     fig.update_layout(
+         height=height, title=title, margin=dict(t=46 if title else 16, r=12, b=12, l=12),
+         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+-        font=dict(color=INK, size=12, family="IBM Plex Sans, sans-serif"),
++        font=dict(color=INK, size=12, family="Bricolage Grotesque, sans-serif"),
+         title_font=dict(size=13.5, color=INK),
+         xaxis=dict(gridcolor=LINE, zerolinecolor=LINE, linecolor=LINE),
+         yaxis=dict(gridcolor=LINE, zerolinecolor=LINE, linecolor=LINE),
+diff --git a/ui/motion.py b/ui/motion.py
+index 4d5c041..e57db77 100644
+--- a/ui/motion.py
++++ b/ui/motion.py
+@@ -41,39 +41,37 @@ MOTION_CSS = """
+ @keyframes wipe   { from { clip-path:inset(0 100% 0 0); } to { clip-path:inset(0 0 0 0); } }
+ @keyframes grow   { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+ @keyframes shimmer{ from { background-position:-220% 0; } to { background-position:220% 0; } }
+-@keyframes breathe{ 0%,100% { box-shadow:0 0 0 3px rgba(60,139,87,.16); }
+-                    50%      { box-shadow:0 0 0 7px rgba(60,139,87,.04); } }
++@keyframes breathe{ 0%,100% { box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
++                    50%      { box-shadow:0 0 0 7px color-mix(in srgb, var(--accent) 5%, transparent); } }
+ @keyframes sweepline { 0% { left:0; opacity:0; } 8% { opacity:1; }
+                        92% { opacity:1; } 100% { left:100%; opacity:0; } }
+ 
+-/* readings: staggered rise, with the first one's rule growing down */
++/* readings: staggered rise */
+ .readings .reading { animation: rise .5s ease-out both; }
+ .readings .reading:nth-child(1) { animation-delay:.04s; }
+ .readings .reading:nth-child(2) { animation-delay:.11s; }
+ .readings .reading:nth-child(3) { animation-delay:.18s; }
+ .readings .reading:nth-child(4) { animation-delay:.25s; }
+ .readings .reading:nth-child(5) { animation-delay:.32s; }
+-.readings .reading:first-child { animation: grow .5s cubic-bezier(.4,0,.2,1) both; transform-origin:top; }
+ 
+ /* a tray photograph wipes in behind a scanning line */
+ [data-testid="stImage"] { position:relative; }
+ [data-testid="stImage"] img { animation: wipe .7s cubic-bezier(.4,0,.2,1) both; }
+ [data-testid="stImage"]::after {
+-  content:""; position:absolute; top:0; bottom:0; width:2px; background:var(--s3);
+-  box-shadow:0 0 12px 2px rgba(192,132,48,.45);
++  content:""; position:absolute; top:0; bottom:0; width:2px; background:var(--accent);
++  box-shadow:0 0 12px 2px color-mix(in srgb, var(--accent) 45%, transparent);
+   animation: sweepline .75s cubic-bezier(.4,0,.2,1) 1 forwards; }
+ 
+ /* the run's progress bar reads as a measurement in progress, not a download */
+ [data-testid="stProgress"] div[role="progressbar"] > div {
+-  background-image:linear-gradient(90deg, var(--s3) 0%, #E6B76C 45%, var(--s3) 90%);
++  background-image:linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 45%, var(--accent) 90%);
+   background-size:220% 100%; animation: shimmer 1.4s linear infinite; }
+ 
+-/* the active spine segment scans while it works */
+-.spine .p.now::before {
+-  background-image:linear-gradient(90deg, transparent, var(--c), transparent);
+-  background-size:60% 100%; background-repeat:no-repeat;
+-  animation: shimmer 1.3s linear infinite; }
+-.spine .p.done::before { animation: grow .35s cubic-bezier(.2,1.4,.4,1) both; transform-origin:left; }
++/* the active seed on the spine pulses while its stage runs; a finished one pops full */
++@keyframes seedpulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.35); } }
++@keyframes seedpop   { from { transform:scale(.4); } to { transform:scale(1); } }
++.spine .p.now::before  { animation: seedpulse 1.2s ease-in-out infinite; }
++.spine .p.done::before { animation: seedpop .35s cubic-bezier(.2,1.4,.4,1) both; }
+ 
+ /* panels and verdicts arrive rather than appear */
+ .phead, .psub { animation: rise .45s ease-out both; }
+@@ -81,14 +79,13 @@ MOTION_CSS = """
+ 
+ /* ---- hero -------------------------------------------------------------- */
+ .hero { display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap;
+-  border:1px solid var(--line); border-radius:4px; background:var(--card);
+-  padding:1.1rem 1.3rem; margin-bottom:1rem; position:relative; overflow:hidden; }
+-.hero::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+-  background:linear-gradient(180deg, var(--s1), var(--s3) 45%, var(--s6) 75%, var(--out)); }
++  border:1px solid var(--line); border-radius:var(--r-card); background:var(--card);
++  padding:1.3rem 1.5rem; margin-bottom:1rem; position:relative; overflow:hidden; }
+ .hero .mark { width:78px; height:78px; flex:none; }
+ .hero .mark img, .hero .mark svg { width:78px; height:78px; display:block; }
+ .hero .copy { flex:1 1 340px; }
+-.hero h1 { font-size:1.7rem; font-weight:600; letter-spacing:-.02em; color:var(--ink);
++.hero h1 { font-size:2.05rem; font-weight:600; letter-spacing:-.025em; color:var(--ink);
++  font-variation-settings:'opsz' 96;
+   margin:0; line-height:1.1; animation: rise .5s .1s ease-out both; }
+ .hero p { margin:.3rem 0 0 0; color:var(--muted); font-size:.92rem; max-width:60ch;
+   animation: rise .5s .2s ease-out both; }
+@@ -102,15 +99,16 @@ MOTION_CSS = """
+ .loader .say { font-size:.9rem; color:var(--ink); }
+ .loader .say b { font-weight:600; }
+ .loader .say span { display:block; color:var(--muted); font-size:.82rem; margin-top:.15rem;
+-  font-family:'IBM Plex Mono', monospace; }
++  font-variant-numeric:tabular-nums; }
+ 
+ /* ---- live status dot ---------------------------------------------------- */
+ .chip.live::before { content:""; display:inline-block; width:7px; height:7px; border-radius:50%;
+-  background:var(--s2); margin-right:.4rem; vertical-align:middle;
++  background:var(--accent); margin-right:.4rem; vertical-align:middle;
+   animation: breathe 2.8s ease-in-out infinite; }
+ 
+ @media (prefers-reduced-motion: reduce) {
+-  *, .hero h1, .hero p, .readings .reading, .chip.live::before { animation:none !important; }
++  *, .hero h1, .hero p, .readings .reading, .chip.live::before,
++  .spine .p::before { animation:none !important; }
+   [data-testid="stImage"] img { clip-path:none; }
+   [data-testid="stImage"]::after { display:none; }
+   .count::after { content: var(--fallback, attr(data-value)); }
+@@ -153,7 +151,7 @@ def _art(name: str, width: int, height: int, css_class: str = "") -> str:
+ # hero
+ # ---------------------------------------------------------------------------
+ 
+-_STAGE_DOTS = ["#2E6FA8", "#3C8B57", "#C08430", "#4E9A51", "#7659A6", "#B24C87", "#2E86A0"]
++_STAGE_DOTS = ["#33648F", "#3F7A48", "#96651F", "#5B7128", "#6B5A9E", "#A64C7B", "#2F7A88"]
+ 
+ 
+ def hero(title: str, subtitle: str) -> None:
+diff --git a/ui/theme.py b/ui/theme.py
+index 8e5d615..b554d10 100644
+--- a/ui/theme.py
++++ b/ui/theme.py
+@@ -1,45 +1,125 @@
+ """
+ Visual system.
+ 
+-The colours are lifted from the printed workflow figure, one hue per panel, so
+-the app and the figure read as the same document: blue for acquisition, green
+-for detection, amber for segmentation, leaf for phenotypes, violet for physical
+-properties, magenta for reliability, teal for validation, orange for outputs.
+-
+-Everything sits on a cool paper white rather than a warm cream, because the
+-seeds themselves are warm browns and ambers and the sheet should not compete
+-with them.
+-
+-Type is IBM Plex: Sans for prose, Mono for every measurement. Numbers that will
+-be compared down a column are set in tabular figures — a measuring instrument
+-should let you read a column without re-aligning your eye at each row.
++The app is a seed tray on graph paper. That is what the scale step asks people
++to photograph, and it is where every colour and shape here comes from:
++
++  * the sheet is the matte olive-grey of a tray, not paper-white and not cream
++  * the ink is black lentil, the working accent is green lentil, and red lentil
++    is reserved for the two things that need a warning colour — flags and the
++    Defective class
++  * the eight workflow stages keep the order of the published figure (blue,
++    green, amber, leaf, violet, magenta, teal, orange) but are retuned so they
++    sit in the same earthy family as everything else
++  * the masthead sits on a faint 10 mm grid; that grid is the one decorative
++    element and appears nowhere else
++
++Type is one family, Bricolage Grotesque, which has an optical-size axis: wide
++and characterful at display size, plain at body size. Every number is set with
++tabular figures so a column can be read without re-aligning the eye per row.
++
++Two surfaces
++------------
++The palette is resolved once per rerun and pushed into the modules that
++captured it, because `ui/panels.py` and `ui/components.py` do
++`from .theme import INK, LINE, MUTED, CARD` at import time and feed those
++values to Plotly, which needs concrete colours rather than CSS variables:
++
++    mode = theme.active_mode()
++    st.markdown(theme.css(mode), unsafe_allow_html=True)
++    theme.bind(mode, ui.panels, ui.components)
++
++`STAGE_COLORS` is mutated in place rather than rebound, so every module holding
++a reference to that dict sees the change without being listed in `bind`.
+ """
+ from __future__ import annotations
+ 
+-INK = "#12211D"
+-PAPER = "#FAFBFA"
+-CARD = "#FFFFFF"
+-LINE = "#E2E6E3"
+-MUTED = "#6F7B76"
+-
+-# One accent per workflow panel, matching the figure's panel headers.
+-STAGE_COLORS = {
+-    "acquire": "#2E6FA8",
+-    "detect": "#3C8B57",
+-    "segment": "#C08430",
+-    "phenotype": "#4E9A51",
+-    "physical": "#7659A6",
+-    "reliability": "#B24C87",
+-    "validation": "#2E86A0",
+-    "outputs": "#D2762C",
++import streamlit as st
++
++# ---------------------------------------------------------------------------
++# surfaces
++# ---------------------------------------------------------------------------
++
++_SURFACE = {
++    "light": {
++        "paper": "#F2F4EC",
++        "card": "#FFFFFF",
++        "ink": "#1B2116",
++        "line": "#D3D9C6",
++        "muted": "#5F6A55",
++        "sunk": "#E9EDE1",          # inset wells: dropzone, seed crops, notes
++        "accent": "#5B7128",        # green lentil — buttons, active tab, ring
++        "accent_ink": "#FFFFFF",
++        "accent_hover": "#4A5D20",
++        "flag": "#B8432A",          # red lentil — warnings only
++        "grid": "rgba(91,113,40,.16)",
++        "ring": "#5B7128",
++        "swatch_ring": "rgba(27,33,22,.16)",
++    },
++    "dark": {
++        "paper": "#161A12",
++        "card": "#1F2419",
++        "ink": "#E9ECDF",
++        "line": "#333B2B",
++        "muted": "#98A28B",
++        "sunk": "#10130C",
++        "accent": "#A5C25A",
++        "accent_ink": "#141709",
++        "accent_hover": "#B8D46E",
++        "flag": "#E0765A",
++        "grid": "rgba(165,194,90,.14)",
++        "ring": "#A5C25A",
++        "swatch_ring": "rgba(233,236,223,.28)",
++    },
++}
++
++# One hue per workflow panel, in the order of the published figure. Every hue
++# is used as type (a stage number, a lit spine seed), so each is held to at
++# least 4.5:1 against its own card.
++_STAGES = {
++    "light": {
++        "acquire": "#33648F",
++        "detect": "#3F7A48",
++        "segment": "#96651F",
++        "phenotype": "#5B7128",
++        "physical": "#6B5A9E",
++        "reliability": "#A64C7B",
++        "validation": "#2F7A88",
++        "outputs": "#B35A22",
++    },
++    "dark": {
++        "acquire": "#86B1DC",
++        "detect": "#83C48F",
++        "segment": "#E0AC5A",
++        "phenotype": "#A5C25A",
++        "physical": "#B4A2E0",
++        "reliability": "#E390BD",
++        "validation": "#74BFD0",
++        "outputs": "#F0A365",
++    },
+ }
+-ACCENT = STAGE_COLORS["segment"]
+ 
+-# Detector classes. Warm browns for the coat types, red only for defects, so a
+-# glance at an annotated tray separates "different seed" from "problem seed".
++# ---------------------------------------------------------------------------
++# module-level constants — the light values are the import-time default, and
++# `bind()` overwrites them (here and in the modules that captured them).
++# ---------------------------------------------------------------------------
++
++PAPER = _SURFACE["light"]["paper"]
++CARD = _SURFACE["light"]["card"]
++INK = _SURFACE["light"]["ink"]
++LINE = _SURFACE["light"]["line"]
++MUTED = _SURFACE["light"]["muted"]
++
++STAGE_COLORS = dict(_STAGES["light"])
++ACCENT = _SURFACE["light"]["accent"]
++FLAG = _SURFACE["light"]["flag"]
++
++# Detector classes. These are drawn onto the tray photographs themselves, so
++# they are fixed: a seed's coat colour does not depend on the reader's theme.
++# Warm browns for the coat types, red only for defects.
+ CLASS_COLORS = {
+     "Black seeds": "#2B2B2B",
+-    "Defective": "#B4472F",
++    "Defective": "#B8432A",
+     "Dotted seeds": "#8E5B3A",
+     "Marbled seeds": "#B08968",
+     "Spotted seeds": "#D4A24C",
+@@ -65,107 +145,304 @@ def class_colors_bgr() -> dict[str, tuple[int, int, int]]:
+     return {k: hex_to_bgr(v) for k, v in CLASS_COLORS.items()}
+ 
+ 
+-CSS = f"""
++def class_color(name) -> str:
++    """Case-insensitive lookup, with a neutral for classes we don't publish."""
++    key = str(name).strip().lower()
++    for k, v in CLASS_COLORS.items():
++        if k.lower() == key:
++            return v
++    return DEFAULT_CLASS_COLOR
++
++
++# ---------------------------------------------------------------------------
++# resolving and applying the palette
++# ---------------------------------------------------------------------------
++
++def active_mode() -> str:
++    """
++    Whichever surface the reader is actually on.
++
++    Streamlit reports the resolved theme on `st.context.theme` from 1.46; older
++    builds only know what the config file asked for.
++    """
++    try:
++        kind = st.context.theme.type
++        if kind in ("light", "dark"):
++            return kind
++    except Exception:                                  # noqa: BLE001
++        pass
++    try:
++        base = st.get_option("theme.base")
++        if base in ("light", "dark"):
++            return base
++    except Exception:                                  # noqa: BLE001
++        pass
++    return "light"
++
++
++def palette(mode: str = "light") -> dict[str, str]:
++    surface = dict(_SURFACE.get(mode, _SURFACE["light"]))
++    surface.update(_STAGES.get(mode, _STAGES["light"]))
++    return surface
++
++
++def bind(mode: str, *modules) -> dict[str, str]:
++    """
++    Point the Python-side colour constants at `mode` and return the palette.
++
++    Pass every module that did `from .theme import INK, ...` — their globals are
++    rebound in place. Anything reading `theme.STAGE_COLORS` needs no listing:
++    that dict is updated, never replaced.
++    """
++    pal = palette(mode)
++    named = {"PAPER": "paper", "CARD": "card", "INK": "ink",
++             "LINE": "line", "MUTED": "muted", "ACCENT": "accent", "FLAG": "flag"}
++
++    for namespace in (globals(), *(vars(m) for m in modules)):
++        for const, key in named.items():
++            if const in namespace:
++                namespace[const] = pal[key]
++
++    STAGE_COLORS.update(_STAGES.get(mode, _STAGES["light"]))
++    return pal
++
++
++# ---------------------------------------------------------------------------
++# stylesheet
++# ---------------------------------------------------------------------------
++
++def css(mode: str = "light") -> str:
++    p = palette(mode)
++    return f"""
+ <style>
+-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
++@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&display=swap');
+ 
+ :root {{
+-  --ink:{INK}; --paper:{PAPER}; --card:{CARD}; --line:{LINE}; --muted:{MUTED};
+-  --s1:{STAGE_COLORS['acquire']}; --s2:{STAGE_COLORS['detect']};
+-  --s3:{STAGE_COLORS['segment']}; --s4:{STAGE_COLORS['phenotype']};
+-  --s5:{STAGE_COLORS['physical']}; --s6:{STAGE_COLORS['reliability']};
+-  --s7:{STAGE_COLORS['validation']}; --out:{STAGE_COLORS['outputs']};
++  --ink:{p['ink']}; --paper:{p['paper']}; --card:{p['card']};
++  --line:{p['line']}; --muted:{p['muted']}; --sunk:{p['sunk']};
++  --accent:{p['accent']}; --accent-ink:{p['accent_ink']}; --accent-hover:{p['accent_hover']};
++  --flag:{p['flag']}; --grid:{p['grid']}; --ring:{p['ring']};
++  --swatch-ring:{p['swatch_ring']};
++  --s1:{p['acquire']}; --s2:{p['detect']}; --s3:{p['segment']}; --s4:{p['phenotype']};
++  --s5:{p['physical']}; --s6:{p['reliability']}; --s7:{p['validation']}; --out:{p['outputs']};
++  --font:'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
++  --r-card:10px; --r-ctl:6px;
+ }}
+ 
+ html, body, [data-testid="stAppViewContainer"], .stMarkdown, .stButton button,
+-[data-testid="stSidebar"] {{
+-  font-family:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
++[data-testid="stSidebar"], .stTabs, .stSelectbox, .stTextInput, .stNumberInput,
++.stRadio, .stSlider, .stCheckbox, .stExpander, [data-testid="stFileUploader"] {{
++  font-family:var(--font);
+ }}
+-.block-container {{ padding-top:2rem; max-width:1320px; }}
+-
+-/* masthead ---------------------------------------------------------------- */
+-.mast {{ display:flex; align-items:center; gap:.85rem; flex-wrap:wrap;
+-  border-bottom:1px solid var(--line); padding-bottom:.75rem; margin-bottom:1rem; }}
+-.mast .mark {{ width:36px; height:36px; flex:none; color:var(--ink); }}
+-.mast .mark svg, .mast .mark img {{ width:36px; height:36px; display:block; }}
+-.mast h1 {{ font-size:1.55rem; font-weight:600; letter-spacing:-.015em;
+-  color:var(--ink); margin:0; line-height:1.15; }}
+-.mast p {{ margin:.1rem 0 0 0; color:var(--muted); font-size:.9rem; max-width:62ch; }}
++.stMarkdown, .stRadio label, .stCheckbox label {{ font-variant-numeric:tabular-nums; }}
++[data-testid="stAppViewContainer"], .stApp {{ background:var(--paper); color:var(--ink); }}
++[data-testid="stHeader"] {{ background:transparent; }}
++.block-container {{ padding-top:1.6rem; padding-bottom:4rem; max-width:1180px; }}
++
++:focus-visible {{ outline:2px solid var(--ring); outline-offset:2px; border-radius:4px; }}
++
++/* masthead: a specimen card on graph paper ------------------------------- */
++.mast {{ display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
++  position:relative; overflow:hidden; margin:0 0 1.2rem 0;
++  padding:1.35rem 1.5rem; background:var(--card); border:1px solid var(--line);
++  border-radius:var(--r-card); }}
++.mast::before {{ content:""; position:absolute; inset:0; pointer-events:none;
++  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
++                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
++  background-size:10px 10px; background-position:-1px -1px;
++  -webkit-mask-image:linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,0) 62%);
++          mask-image:linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,0) 62%); }}
++.mast > * {{ position:relative; }}
++.mast .mark {{ width:52px; height:52px; flex:none; color:var(--ink); }}
++.mast .mark svg, .mast .mark img {{ width:52px; height:52px; display:block; }}
++.mast h1 {{ font-size:2.05rem; font-weight:600; letter-spacing:-.025em;
++  font-variation-settings:'opsz' 96; color:var(--ink); margin:0; line-height:1.05; }}
++.mast p {{ margin:.35rem 0 0 0; color:var(--muted); font-size:.95rem; line-height:1.45;
++  max-width:58ch; }}
+ .mast .grow {{ flex:1; }}
+ 
+-/* instrument readout ------------------------------------------------------ */
++/* status pills ------------------------------------------------------------ */
+ .chipline {{ display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+-  font-family:'IBM Plex Mono', ui-monospace, monospace; font-size:.76rem; }}
+-.chip {{ border:1px solid var(--line); border-radius:2px; padding:.2rem .45rem;
++  font-size:.8rem; margin-bottom:.4rem; }}
++.chip {{ border:1px solid var(--line); border-radius:999px; padding:.22rem .7rem;
+   background:var(--card); color:var(--muted); white-space:nowrap; }}
+-.chip b {{ color:var(--ink); font-weight:500; }}
+-.chip.live {{ border-color:var(--s2); color:var(--s2); }}
+-.chip.warn {{ border-color:var(--out); color:var(--out); }}
++.chip b {{ color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }}
++.chip.live {{ border-color:var(--accent); color:var(--accent); }}
++.chip.live b {{ color:var(--accent); }}
++.chip.warn {{ border-color:var(--flag); color:var(--flag); }}
++.chip.warn b {{ color:var(--flag); }}
+ .chip.off {{ border-style:dashed; }}
+ 
+-/* the seven-panel spine --------------------------------------------------- */
+-.spine {{ display:flex; gap:0; margin:1.1rem 0 1.3rem 0; border-top:1px solid var(--line);
+-  padding-top:.9rem; }}
+-.spine .p {{ flex:1; padding-right:.7rem; position:relative; }}
+-.spine .p::before {{ content:""; position:absolute; top:-.9rem; left:0; right:.7rem;
+-  height:2px; background:var(--line); }}
+-.spine .p.done::before, .spine .p.now::before {{ background:var(--c); }}
+-.spine .num {{ font-family:'IBM Plex Mono', monospace; font-size:.72rem; color:var(--muted);
+-  font-variant-numeric:tabular-nums; }}
+-.spine .p.done .num, .spine .p.now .num {{ color:var(--c); }}
+-.spine .lab {{ font-size:.8rem; color:var(--muted); line-height:1.3; }}
++/* the three steps --------------------------------------------------------- */
++.steps {{ display:flex; gap:.5rem; margin:.9rem 0 1.5rem 0; }}
++.steps .s {{ flex:1; display:flex; align-items:center; gap:.6rem; padding:.55rem .85rem;
++  border:1px solid var(--line); border-radius:var(--r-ctl); background:transparent;
++  color:var(--muted); }}
++.steps .s.done {{ border-color:var(--accent); background:var(--accent); color:var(--accent-ink); }}
++.steps .s.now {{ border-color:var(--accent); border-width:2px; background:var(--card);
++  color:var(--ink); }}
++.steps .n {{ width:1.4rem; height:1.4rem; border-radius:50%; flex:none;
++  display:grid; place-items:center; font-size:.78rem; font-weight:600;
++  font-variant-numeric:tabular-nums; border:1.5px solid currentColor; }}
++.steps .s.done .n {{ background:var(--accent-ink); color:var(--accent); border-color:transparent; }}
++.steps .s.now .n {{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }}
++.steps .t {{ font-size:.9rem; line-height:1.25; }}
++.steps .s.now .t {{ font-weight:600; }}
++.steps .s.done .t {{ font-weight:500; }}
++
++/* the seven-stage spine: seeds on a line ---------------------------------- */
++.spine {{ display:flex; gap:0; margin:1.1rem 0 1.4rem 0; position:relative; }}
++.spine::before {{ content:""; position:absolute; left:8px; right:8px; top:8px; height:2px;
++  background:var(--line); }}
++.spine .p {{ flex:1; position:relative; min-width:0; padding:1.35rem .6rem 0 0; }}
++.spine .p::before {{ content:""; position:absolute; top:2px; left:0; width:14px; height:14px;
++  border-radius:50%; background:var(--paper); border:2px solid var(--line);
++  box-sizing:border-box; }}
++.spine .p.done::before {{ background:var(--c); border-color:var(--c); }}
++.spine .p.now::before {{ border-color:var(--c); border-width:3px; }}
++.spine .num {{ display:none; }}
++.spine .lab {{ font-size:.82rem; color:var(--muted); line-height:1.3; }}
+ .spine .p.done .lab {{ color:var(--ink); }}
+-.spine .p.now .lab {{ color:var(--ink); font-weight:600; }}
+-.spine .p.now::before {{ animation:pulse 1.2s ease-in-out infinite; }}
+-@keyframes pulse {{ 0%,100% {{ opacity:1; }} 50% {{ opacity:.3; }} }}
++.spine .p.now .lab {{ color:var(--c); font-weight:600; }}
+ 
+ /* readings ---------------------------------------------------------------- */
+-.readings {{ display:flex; flex-wrap:wrap; gap:0; margin:.2rem 0 1.1rem 0; }}
+-.reading {{ flex:1 1 145px; padding:.1rem 1rem; border-left:1px solid var(--line); }}
+-.reading:first-child {{ border-left:2px solid var(--c, var(--s3)); }}
+-.reading .val {{ font-family:'IBM Plex Mono', monospace; font-size:1.6rem; font-weight:500;
+-  color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.2; }}
+-.reading .lab {{ font-size:.77rem; color:var(--muted); }}
++.readings {{ display:flex; flex-wrap:wrap; gap:1.2rem 2.2rem; margin:.2rem 0 1.3rem 0; }}
++.reading {{ flex:0 1 auto; min-width:7.5rem; }}
++.reading .val {{ font-size:2rem; font-weight:600; letter-spacing:-.02em;
++  font-variation-settings:'opsz' 72; color:var(--ink); font-variant-numeric:tabular-nums;
++  line-height:1.1; }}
++.reading .lab {{ font-size:.82rem; color:var(--muted); margin-top:.15rem; }}
+ 
+ /* panel heading ----------------------------------------------------------- */
+-.phead {{ display:flex; align-items:baseline; gap:.6rem; margin:.3rem 0 .1rem 0; }}
+-.phead .n {{ font-family:'IBM Plex Mono', monospace; font-size:.78rem; color:#fff;
+-  background:var(--c); border-radius:2px; padding:.05rem .38rem; font-variant-numeric:tabular-nums; }}
+-.phead h3 {{ font-size:1.02rem; font-weight:600; color:var(--ink); margin:0; }}
+-.psub {{ color:var(--muted); font-size:.87rem; margin:.15rem 0 .9rem 0; max-width:72ch; }}
++.phead {{ display:flex; align-items:center; gap:.65rem; margin:.4rem 0 .15rem 0; }}
++.phead .n {{ width:1.55rem; height:1.55rem; border-radius:50%; display:grid; place-items:center;
++  font-size:.8rem; font-weight:600; color:#fff; background:var(--c);
++  font-variant-numeric:tabular-nums; flex:none; }}
++.phead h3 {{ font-size:1.18rem; font-weight:600; letter-spacing:-.01em; color:var(--ink);
++  margin:0; font-variation-settings:'opsz' 32; }}
++.psub {{ color:var(--muted); font-size:.9rem; margin:.25rem 0 1rem 0; max-width:70ch;
++  line-height:1.45; }}
+ 
+ /* note -------------------------------------------------------------------- */
+-.note {{ border-left:2px solid var(--line); padding:.1rem 0 .1rem .75rem;
+-  color:var(--muted); font-size:.86rem; margin:.3rem 0 .9rem 0; max-width:78ch; }}
+-.note b {{ color:var(--ink); font-weight:600; }}
+-.note.flag {{ border-left-color:var(--out); }}
++.note {{ background:var(--sunk); border-radius:var(--r-ctl); padding:.6rem .85rem .6rem 2rem;
++  position:relative; color:var(--muted); font-size:.88rem; line-height:1.45;
++  margin:.4rem 0 1rem 0; max-width:78ch; }}
++.note::before {{ content:""; position:absolute; left:.85rem; top:.95rem; width:8px; height:8px;
++  border-radius:50%; background:var(--accent); }}
++.note b, .note code {{ color:var(--ink); font-weight:600; }}
++.note.flag::before {{ background:var(--flag); }}
++.note.flag {{ color:var(--ink); }}
+ 
+ /* verdict rows ------------------------------------------------------------ */
+-.verdict {{ display:flex; gap:.6rem; align-items:flex-start; padding:.5rem .7rem;
+-  background:var(--card); border:1px solid var(--line); border-left:3px solid var(--c);
+-  border-radius:3px; margin-bottom:.5rem; font-size:.87rem; color:var(--ink); }}
+-.verdict .k {{ font-family:'IBM Plex Mono', monospace; color:var(--muted);
+-  min-width:9.5rem; font-size:.8rem; }}
++.verdict {{ display:flex; gap:.7rem; align-items:flex-start; padding:.6rem .85rem;
++  background:var(--card); border:1px solid var(--line); border-radius:var(--r-ctl);
++  margin-bottom:.5rem; font-size:.88rem; color:var(--ink); line-height:1.45; }}
++.verdict::before {{ content:""; width:9px; height:9px; border-radius:50%; flex:none;
++  background:var(--c); margin-top:.38rem; }}
++.verdict .k {{ color:var(--muted); min-width:9.5rem; font-weight:500; }}
+ 
+ /* tray caption ------------------------------------------------------------ */
+-.cap {{ display:flex; justify-content:space-between; gap:.5rem; padding:.3rem .1rem .8rem .1rem;
+-  font-size:.78rem; color:var(--muted); border-top:1px solid var(--line);
+-  font-family:'IBM Plex Mono', monospace; }}
+-.cap b {{ color:var(--ink); font-weight:500; }}
+-
+-/* chrome ------------------------------------------------------------------ */
+-[data-testid="stFileUploaderDropzone"] {{ background:var(--card); border:1px dashed var(--line); }}
+-[data-testid="stFileUploaderDropzone"]:hover {{ border-color:var(--s3); }}
++.cap {{ display:flex; justify-content:space-between; gap:.5rem;
++  padding:.35rem .1rem .9rem .1rem; font-size:.8rem; color:var(--muted); }}
++.cap b {{ color:var(--ink); font-weight:600; }}
++
++/* photographs waiting to be measured -------------------------------------- */
++.tray-grid {{ display:grid; gap:12px; margin:.9rem 0 1.2rem 0;
++  grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); }}
++.tray {{ border:1px solid var(--line); background:var(--card); border-radius:var(--r-card);
++  overflow:hidden; }}
++.tray img {{ width:100%; display:block; aspect-ratio:4/3; object-fit:cover;
++  background:var(--sunk); }}
++.tray .f {{ padding:.45rem .7rem; font-size:.78rem; color:var(--muted);
++  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
++
++/* class composition ------------------------------------------------------- */
++.class-grid {{ display:grid; gap:10px; margin:.5rem 0 1.4rem 0;
++  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }}
++.class-tile {{ padding:.75rem .9rem .8rem .9rem; min-width:0; background:var(--card);
++  border:1px solid var(--line); border-radius:var(--r-card); }}
++.class-tile .name {{ display:flex; align-items:center; gap:.45rem; font-size:.82rem;
++  color:var(--muted); line-height:1.35; }}
++.class-tile .swatch {{ width:11px; height:11px; flex:none; border-radius:50%;
++  box-shadow:inset 0 0 0 1px var(--swatch-ring); }}
++.class-tile .count {{ font-size:1.7rem; font-weight:600; letter-spacing:-.02em;
++  color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.2; margin-top:.2rem; }}
++.class-tile .pct {{ font-size:.78rem; color:var(--muted); font-variant-numeric:tabular-nums; }}
++.class-tile .bar {{ height:5px; border-radius:999px; background:var(--sunk); margin-top:.55rem;
++  overflow:hidden; }}
++.class-tile .bar i {{ display:block; height:5px; border-radius:999px; background:var(--c); }}
++
++/* seed contact sheet: each crop is a seed, so it is round ----------------- */
++.seed-grid {{ display:grid; gap:10px; margin:.5rem 0 1rem 0;
++  grid-template-columns:repeat(auto-fill, minmax(88px, 1fr)); }}
++.seed {{ aspect-ratio:1/1; border-radius:50%; background:var(--sunk);
++  border:3px solid var(--c); padding:6px; overflow:hidden; }}
++.seed img {{ width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }}
++
++/* Streamlit chrome -------------------------------------------------------- */
++[data-testid="stFileUploaderDropzone"] {{ background:var(--sunk);
++  border:1.5px dashed var(--line); border-radius:var(--r-card); }}
++[data-testid="stFileUploaderDropzone"]:hover {{ border-color:var(--accent); }}
+ [data-testid="stSidebar"] {{ border-right:1px solid var(--line); }}
+-[data-testid="stSidebar"] .stExpander {{ border:none; }}
+-.stTabs [data-baseweb="tab"] {{ font-size:.86rem; padding:.4rem .7rem; }}
+-.stTabs [data-baseweb="tab-list"] {{ gap:.15rem; border-bottom:1px solid var(--line); }}
+ [data-testid="stMetricValue"], .stDataFrame {{ font-variant-numeric:tabular-nums; }}
+-.stButton button[kind="primary"] {{ background:var(--s3); border-color:var(--s3); }}
+-.stButton button[kind="primary"]:hover {{ background:#A96F22; border-color:#A96F22; }}
++[data-testid="stExpander"] details {{ border:1px solid var(--line);
++  border-radius:var(--r-card); background:var(--card); }}
++[data-testid="stSegmentedControl"] button {{ border-radius:999px; }}
++
++.stTabs [data-baseweb="tab-list"] {{ gap:.1rem; border-bottom:1px solid var(--line);
++  overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap;
++  scrollbar-width:none; -ms-overflow-style:none; }}
++.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar {{ display:none; }}
++.stTabs [data-baseweb="tab"] {{ font-size:.92rem; font-weight:500; padding:.5rem .9rem;
++  white-space:nowrap; color:var(--muted); }}
++.stTabs [aria-selected="true"] {{ color:var(--ink); }}
++.stTabs [data-baseweb="tab-highlight"] {{ background:var(--accent); height:2px; }}
++.stTabs [data-baseweb="tab-border"] {{ display:none; }}
++
++.stButton button {{ border-radius:999px; font-weight:600; padding:.45rem 1.1rem; }}
++.stButton button[kind="primary"] {{ background:var(--accent); border-color:var(--accent);
++  color:var(--accent-ink); }}
++.stButton button[kind="primary"]:hover {{ background:var(--accent-hover);
++  border-color:var(--accent-hover); }}
++.stButton button[kind="secondary"] {{ background:var(--card); border-color:var(--line);
++  color:var(--ink); }}
++.stButton button[kind="secondary"]:hover {{ border-color:var(--accent); color:var(--accent); }}
++.stDownloadButton button {{ border-radius:999px; font-weight:600; }}
++
++/* narrow screens ---------------------------------------------------------- */
++@media (max-width: 720px) {{
++  .block-container {{ padding-top:1rem; padding-left:1rem; padding-right:1rem; }}
++  .mast {{ padding:1rem 1.1rem; gap:.9rem; }}
++  .mast .mark, .mast .mark svg, .mast .mark img {{ width:40px; height:40px; }}
++  .mast h1 {{ font-size:1.5rem; }}
++  .mast p {{ font-size:.88rem; }}
++
++  .steps {{ gap:.35rem; }}
++  .steps .s {{ padding:.45rem .5rem; gap:.4rem; }}
++  .steps .t {{ font-size:.78rem; }}
++
++  /* Seven seeds on a line is still legible on a phone; the labels are not,
++     so only the current stage keeps its label. */
++  .spine .p {{ padding-right:.2rem; }}
++  .spine .lab {{ display:none; }}
++  .spine .p.now .lab {{ display:block; font-size:.78rem; }}
++
++  .readings {{ gap:.9rem 1.4rem; }}
++  .reading .val {{ font-size:1.5rem; }}
++  .tray-grid {{ grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; }}
++  .seed-grid {{ grid-template-columns:repeat(auto-fill, minmax(64px, 1fr)); gap:7px; }}
++  .class-grid {{ grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; }}
++  .verdict {{ flex-wrap:wrap; }}
++  .verdict .k {{ min-width:0; }}
++}}
+ 
+ @media (prefers-reduced-motion: reduce) {{
+-  *, .spine .p.now::before {{ animation:none !important; transition:none !important; }}
++  * {{ animation:none !important; transition:none !important; }}
+ }}
+ </style>
+ """
++
++
++# Kept so anything still doing `from .theme import CSS` keeps working; new code
++# should call `css(mode)`.
++CSS = css("light")

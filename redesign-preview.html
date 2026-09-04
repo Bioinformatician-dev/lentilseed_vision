@@ -1,0 +1,301 @@
+<!doctype html><html><head><meta charset="utf-8"><title>LentilSeedVision — redesign preview</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&display=swap');
+
+:root {
+  --ink:#1B2116; --paper:#F2F4EC; --card:#FFFFFF;
+  --line:#D3D9C6; --muted:#5F6A55; --sunk:#E9EDE1;
+  --accent:#5B7128; --accent-ink:#FFFFFF; --accent-hover:#4A5D20;
+  --flag:#B8432A; --grid:rgba(91,113,40,.16); --ring:#5B7128;
+  --swatch-ring:rgba(27,33,22,.16);
+  --s1:#33648F; --s2:#3F7A48; --s3:#96651F; --s4:#5B7128;
+  --s5:#6B5A9E; --s6:#A64C7B; --s7:#2F7A88; --out:#B35A22;
+  --font:'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --r-card:10px; --r-ctl:6px;
+}
+
+html, body, [data-testid="stAppViewContainer"], .stMarkdown, .stButton button,
+[data-testid="stSidebar"], .stTabs, .stSelectbox, .stTextInput, .stNumberInput,
+.stRadio, .stSlider, .stCheckbox, .stExpander, [data-testid="stFileUploader"] {
+  font-family:var(--font);
+}
+.stMarkdown, .stRadio label, .stCheckbox label { font-variant-numeric:tabular-nums; }
+[data-testid="stAppViewContainer"], .stApp { background:var(--paper); color:var(--ink); }
+[data-testid="stHeader"] { background:transparent; }
+.block-container { padding-top:1.6rem; padding-bottom:4rem; max-width:1180px; }
+
+:focus-visible { outline:2px solid var(--ring); outline-offset:2px; border-radius:4px; }
+
+/* masthead: a specimen card on graph paper ------------------------------- */
+.mast { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
+  position:relative; overflow:hidden; margin:0 0 1.2rem 0;
+  padding:1.35rem 1.5rem; background:var(--card); border:1px solid var(--line);
+  border-radius:var(--r-card); }
+.mast::before { content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:10px 10px; background-position:-1px -1px;
+  -webkit-mask-image:linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,0) 62%);
+          mask-image:linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,0) 62%); }
+.mast > * { position:relative; }
+.mast .mark { width:52px; height:52px; flex:none; color:var(--ink); }
+.mast .mark svg, .mast .mark img { width:52px; height:52px; display:block; }
+.mast h1 { font-size:2.05rem; font-weight:600; letter-spacing:-.025em;
+  font-variation-settings:'opsz' 96; color:var(--ink); margin:0; line-height:1.05; }
+.mast p { margin:.35rem 0 0 0; color:var(--muted); font-size:.95rem; line-height:1.45;
+  max-width:58ch; }
+.mast .grow { flex:1; }
+
+/* status pills ------------------------------------------------------------ */
+.chipline { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
+  font-size:.8rem; margin-bottom:.4rem; }
+.chip { border:1px solid var(--line); border-radius:999px; padding:.22rem .7rem;
+  background:var(--card); color:var(--muted); white-space:nowrap; }
+.chip b { color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+.chip.live { border-color:var(--accent); color:var(--accent); }
+.chip.live b { color:var(--accent); }
+.chip.warn { border-color:var(--flag); color:var(--flag); }
+.chip.warn b { color:var(--flag); }
+.chip.off { border-style:dashed; }
+
+/* the three steps --------------------------------------------------------- */
+.steps { display:flex; gap:.5rem; margin:.9rem 0 1.5rem 0; }
+.steps .s { flex:1; display:flex; align-items:center; gap:.6rem; padding:.55rem .85rem;
+  border:1px solid var(--line); border-radius:var(--r-ctl); background:transparent;
+  color:var(--muted); }
+.steps .s.done { border-color:var(--accent); background:var(--accent); color:var(--accent-ink); }
+.steps .s.now { border-color:var(--accent); border-width:2px; background:var(--card);
+  color:var(--ink); }
+.steps .n { width:1.4rem; height:1.4rem; border-radius:50%; flex:none;
+  display:grid; place-items:center; font-size:.78rem; font-weight:600;
+  font-variant-numeric:tabular-nums; border:1.5px solid currentColor; }
+.steps .s.done .n { background:var(--accent-ink); color:var(--accent); border-color:transparent; }
+.steps .s.now .n { background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+.steps .t { font-size:.9rem; line-height:1.25; }
+.steps .s.now .t { font-weight:600; }
+.steps .s.done .t { font-weight:500; }
+
+/* the seven-stage spine: seeds on a line ---------------------------------- */
+.spine { display:flex; gap:0; margin:1.1rem 0 1.4rem 0; position:relative; }
+.spine::before { content:""; position:absolute; left:8px; right:8px; top:8px; height:2px;
+  background:var(--line); }
+.spine .p { flex:1; position:relative; min-width:0; padding:1.35rem .6rem 0 0; }
+.spine .p::before { content:""; position:absolute; top:2px; left:0; width:14px; height:14px;
+  border-radius:50%; background:var(--paper); border:2px solid var(--line);
+  box-sizing:border-box; }
+.spine .p.done::before { background:var(--c); border-color:var(--c); }
+.spine .p.now::before { border-color:var(--c); border-width:3px; }
+.spine .num { display:none; }
+.spine .lab { font-size:.82rem; color:var(--muted); line-height:1.3; }
+.spine .p.done .lab { color:var(--ink); }
+.spine .p.now .lab { color:var(--c); font-weight:600; }
+
+/* readings ---------------------------------------------------------------- */
+.readings { display:flex; flex-wrap:wrap; gap:1.2rem 2.2rem; margin:.2rem 0 1.3rem 0; }
+.reading { flex:0 1 auto; min-width:7.5rem; }
+.reading .val { font-size:2rem; font-weight:600; letter-spacing:-.02em;
+  font-variation-settings:'opsz' 72; color:var(--ink); font-variant-numeric:tabular-nums;
+  line-height:1.1; }
+.reading .lab { font-size:.82rem; color:var(--muted); margin-top:.15rem; }
+
+/* panel heading ----------------------------------------------------------- */
+.phead { display:flex; align-items:center; gap:.65rem; margin:.4rem 0 .15rem 0; }
+.phead .n { width:1.55rem; height:1.55rem; border-radius:50%; display:grid; place-items:center;
+  font-size:.8rem; font-weight:600; color:#fff; background:var(--c);
+  font-variant-numeric:tabular-nums; flex:none; }
+.phead h3 { font-size:1.18rem; font-weight:600; letter-spacing:-.01em; color:var(--ink);
+  margin:0; font-variation-settings:'opsz' 32; }
+.psub { color:var(--muted); font-size:.9rem; margin:.25rem 0 1rem 0; max-width:70ch;
+  line-height:1.45; }
+
+/* note -------------------------------------------------------------------- */
+.note { background:var(--sunk); border-radius:var(--r-ctl); padding:.6rem .85rem .6rem 2rem;
+  position:relative; color:var(--muted); font-size:.88rem; line-height:1.45;
+  margin:.4rem 0 1rem 0; max-width:78ch; }
+.note::before { content:""; position:absolute; left:.85rem; top:.95rem; width:8px; height:8px;
+  border-radius:50%; background:var(--accent); }
+.note b, .note code { color:var(--ink); font-weight:600; }
+.note.flag::before { background:var(--flag); }
+.note.flag { color:var(--ink); }
+
+/* verdict rows ------------------------------------------------------------ */
+.verdict { display:flex; gap:.7rem; align-items:flex-start; padding:.6rem .85rem;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-ctl);
+  margin-bottom:.5rem; font-size:.88rem; color:var(--ink); line-height:1.45; }
+.verdict::before { content:""; width:9px; height:9px; border-radius:50%; flex:none;
+  background:var(--c); margin-top:.38rem; }
+.verdict .k { color:var(--muted); min-width:9.5rem; font-weight:500; }
+
+/* tray caption ------------------------------------------------------------ */
+.cap { display:flex; justify-content:space-between; gap:.5rem;
+  padding:.35rem .1rem .9rem .1rem; font-size:.8rem; color:var(--muted); }
+.cap b { color:var(--ink); font-weight:600; }
+
+/* photographs waiting to be measured -------------------------------------- */
+.tray-grid { display:grid; gap:12px; margin:.9rem 0 1.2rem 0;
+  grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); }
+.tray { border:1px solid var(--line); background:var(--card); border-radius:var(--r-card);
+  overflow:hidden; }
+.tray img { width:100%; display:block; aspect-ratio:4/3; object-fit:cover;
+  background:var(--sunk); }
+.tray .f { padding:.45rem .7rem; font-size:.78rem; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* class composition ------------------------------------------------------- */
+.class-grid { display:grid; gap:10px; margin:.5rem 0 1.4rem 0;
+  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }
+.class-tile { padding:.75rem .9rem .8rem .9rem; min-width:0; background:var(--card);
+  border:1px solid var(--line); border-radius:var(--r-card); }
+.class-tile .name { display:flex; align-items:center; gap:.45rem; font-size:.82rem;
+  color:var(--muted); line-height:1.35; }
+.class-tile .swatch { width:11px; height:11px; flex:none; border-radius:50%;
+  box-shadow:inset 0 0 0 1px var(--swatch-ring); }
+.class-tile .count { font-size:1.7rem; font-weight:600; letter-spacing:-.02em;
+  color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.2; margin-top:.2rem; }
+.class-tile .pct { font-size:.78rem; color:var(--muted); font-variant-numeric:tabular-nums; }
+.class-tile .bar { height:5px; border-radius:999px; background:var(--sunk); margin-top:.55rem;
+  overflow:hidden; }
+.class-tile .bar i { display:block; height:5px; border-radius:999px; background:var(--c); }
+
+/* seed contact sheet: each crop is a seed, so it is round ----------------- */
+.seed-grid { display:grid; gap:10px; margin:.5rem 0 1rem 0;
+  grid-template-columns:repeat(auto-fill, minmax(88px, 1fr)); }
+.seed { aspect-ratio:1/1; border-radius:50%; background:var(--sunk);
+  border:3px solid var(--c); padding:6px; overflow:hidden; }
+.seed img { width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
+
+/* Streamlit chrome -------------------------------------------------------- */
+[data-testid="stFileUploaderDropzone"] { background:var(--sunk);
+  border:1.5px dashed var(--line); border-radius:var(--r-card); }
+[data-testid="stFileUploaderDropzone"]:hover { border-color:var(--accent); }
+[data-testid="stSidebar"] { border-right:1px solid var(--line); }
+[data-testid="stMetricValue"], .stDataFrame { font-variant-numeric:tabular-nums; }
+[data-testid="stExpander"] details { border:1px solid var(--line);
+  border-radius:var(--r-card); background:var(--card); }
+[data-testid="stSegmentedControl"] button { border-radius:999px; }
+
+.stTabs [data-baseweb="tab-list"] { gap:.1rem; border-bottom:1px solid var(--line);
+  overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap;
+  scrollbar-width:none; -ms-overflow-style:none; }
+.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display:none; }
+.stTabs [data-baseweb="tab"] { font-size:.92rem; font-weight:500; padding:.5rem .9rem;
+  white-space:nowrap; color:var(--muted); }
+.stTabs [aria-selected="true"] { color:var(--ink); }
+.stTabs [data-baseweb="tab-highlight"] { background:var(--accent); height:2px; }
+.stTabs [data-baseweb="tab-border"] { display:none; }
+
+.stButton button { border-radius:999px; font-weight:600; padding:.45rem 1.1rem; }
+.stButton button[kind="primary"] { background:var(--accent); border-color:var(--accent);
+  color:var(--accent-ink); }
+.stButton button[kind="primary"]:hover { background:var(--accent-hover);
+  border-color:var(--accent-hover); }
+.stButton button[kind="secondary"] { background:var(--card); border-color:var(--line);
+  color:var(--ink); }
+.stButton button[kind="secondary"]:hover { border-color:var(--accent); color:var(--accent); }
+.stDownloadButton button { border-radius:999px; font-weight:600; }
+
+/* narrow screens ---------------------------------------------------------- */
+@media (max-width: 720px) {
+  .block-container { padding-top:1rem; padding-left:1rem; padding-right:1rem; }
+  .mast { padding:1rem 1.1rem; gap:.9rem; }
+  .mast .mark, .mast .mark svg, .mast .mark img { width:40px; height:40px; }
+  .mast h1 { font-size:1.5rem; }
+  .mast p { font-size:.88rem; }
+
+  .steps { gap:.35rem; }
+  .steps .s { padding:.45rem .5rem; gap:.4rem; }
+  .steps .t { font-size:.78rem; }
+
+  /* Seven seeds on a line is still legible on a phone; the labels are not,
+     so only the current stage keeps its label. */
+  .spine .p { padding-right:.2rem; }
+  .spine .lab { display:none; }
+  .spine .p.now .lab { display:block; font-size:.78rem; }
+
+  .readings { gap:.9rem 1.4rem; }
+  .reading .val { font-size:1.5rem; }
+  .tray-grid { grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; }
+  .seed-grid { grid-template-columns:repeat(auto-fill, minmax(64px, 1fr)); gap:7px; }
+  .class-grid { grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; }
+  .verdict { flex-wrap:wrap; }
+  .verdict .k { min-width:0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation:none !important; transition:none !important; }
+}
+</style>
+
+<style>body{background:var(--paper);color:var(--ink);font-family:var(--font);margin:0}.block-container{margin:0 auto;padding:2rem 1.5rem}h4{font-weight:500;color:var(--muted);margin:1.4rem 0 .4rem}.btn{display:inline-block;border-radius:999px;font-weight:600;padding:.5rem 1.2rem;border:1px solid var(--line);background:var(--card);margin-right:.5rem}.btn.p{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}</style></head><body><div class="block-container">
+<div class="mast"><span class="mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-label="LentilSeedVision">
+  <title>LentilSeedVision</title>
+  <!--
+    The mark is the app's own job in miniature: a seed appears, its outline is
+    traced, its coat markings are read, and a caliper measures it. Drawn in
+    currentColor so CSS can recolour the ink; the accent is a variable so the
+    theme can drive it.
+  -->
+  <style>
+    :root { --accent: #5B7128; --ink: #1B2116; }
+    .coat   { fill: #E6D5B8; fill-opacity: 0; }
+    .trace  { fill: none; stroke: #1B2116; stroke-width: 2.4;
+              stroke-linecap: round; stroke-dasharray: 152; stroke-dashoffset: 152; }
+    .spot   { fill: #6B5334; opacity: 0; }
+    .rule   { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round;
+              stroke-dasharray: 34; stroke-dashoffset: 34; }
+    .cap    { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; opacity: 0; }
+
+    .coat  { animation: ink   .55s .55s ease forwards; }
+    .trace { animation: draw  .95s .05s cubic-bezier(.4,0,.2,1) forwards,
+                        breathe 7s 2.2s ease-in-out infinite; }
+    .spot  { animation: pop   .35s ease-out forwards; }
+    .s1 { animation-delay: .90s; } .s2 { animation-delay: .99s; }
+    .s3 { animation-delay: 1.08s; } .s4 { animation-delay: 1.17s; }
+    .rule  { animation: draw  .45s 1.30s ease-out forwards,
+                        measure 7s 2.2s ease-in-out infinite; }
+    .cap   { animation: ink   .25s 1.55s ease forwards; }
+
+    @keyframes draw    { to { stroke-dashoffset: 0; } }
+    @keyframes ink     { to { fill-opacity: 1; opacity: 1; } }
+    @keyframes pop     { from { opacity: 0; transform: scale(.4); }
+                         to   { opacity: .85; transform: scale(1); } }
+    /* Every few seconds the outline tightens by a hair, as if re-measured. */
+    @keyframes breathe { 0%, 88%, 100% { stroke-width: 2.4; }
+                         94% { stroke-width: 3.1; } }
+    @keyframes measure { 0%, 86%, 100% { opacity: 1; }
+                         92% { opacity: .35; } }
+    .spot { transform-box: fill-box; transform-origin: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .coat { fill-opacity: 1; } .trace { stroke-dashoffset: 0; }
+      .spot, .cap { opacity: .85; } .rule { stroke-dashoffset: 0; }
+      * { animation: none !important; }
+    }
+  </style>
+
+  <ellipse class="coat"  cx="32" cy="27" rx="21" ry="17"/>
+  <ellipse class="trace" cx="32" cy="27" rx="21" ry="17"/>
+
+  <circle class="spot s1" cx="25" cy="22" r="2.5"/>
+  <circle class="spot s2" cx="37" cy="24" r="2"/>
+  <circle class="spot s3" cx="30" cy="32" r="1.7"/>
+  <circle class="spot s4" cx="40" cy="31" r="1.4"/>
+
+  <!-- caliper across the long axis -->
+  <line class="rule" x1="11" y1="53" x2="53" y2="53"/>
+  <line class="cap"  x1="11" y1="48" x2="11" y2="58"/>
+  <line class="cap"  x1="53" y1="48" x2="53" y2="58"/>
+</svg>
+</span><div><h1>LentilSeedVision</h1><p>Photograph a tray of seeds. Each one is found, traced, measured and sorted by coat type, then checked, and the results come out as a table you can publish from.</p></div></div>
+<div class="chipline"><span class="chip live">model <b>ready</b></span><span class="chip">scale <b>20.50 px/mm</b></span><span class="chip">sensitivity <b>balanced</b></span><span class="chip">classes <b>6</b></span></div>
+<div class="steps"><div class="s done"><div class="n">1</div><div class="t">Photographs</div></div><div class="s done"><div class="n">2</div><div class="t">Settings</div></div><div class="s now"><div class="n">3</div><div class="t">Results</div></div></div>
+<h4>Run in progress</h4><div class="spine"><div class="p done" style="--c:#33648F"><div class="num">1</div><div class="lab">Photograph</div></div><div class="p done" style="--c:#3F7A48"><div class="num">2</div><div class="lab">Detection</div></div><div class="p done" style="--c:#96651F"><div class="num">3</div><div class="lab">Outlines</div></div><div class="p done" style="--c:#5B7128"><div class="num">4</div><div class="lab">Phenotypes</div></div><div class="p now" style="--c:#6B5A9E"><div class="num">5</div><div class="lab">Physical</div></div><div class="p " style="--c:#A64C7B"><div class="num">6</div><div class="lab">Reliability</div></div><div class="p " style="--c:#2F7A88"><div class="num">7</div><div class="lab">Validation</div></div></div>
+<h4>Headline readings</h4><div class="readings"><div class="reading"><div class="val">1,204</div><div class="lab">seeds measured</div></div><div class="reading"><div class="val">6</div><div class="lab">photographs</div></div><div class="reading"><div class="val">33%</div><div class="lab">spotted seeds</div></div><div class="reading"><div class="val">4.62 mm</div><div class="lab">mean length</div></div><div class="reading"><div class="val">18.4 s</div><div class="lab">run time</div></div></div>
+<div class="phead" style="--c:#B35A22"><span class="n">8</span><h3>Seed classes</h3></div><p class="psub">Every measured seed sorted into the six recognised coat types.</p>
+<div class="class-grid"><div class="class-tile" style="--c:#2B2B2B"><div class="name"><span class="swatch" style="background:#2B2B2B"></span>Black seeds</div><div class="count">96</div><div class="pct">8.0%</div><div class="bar"><i style="width:8%"></i></div></div><div class="class-tile" style="--c:#B8432A"><div class="name"><span class="swatch" style="background:#B8432A"></span>Defective</div><div class="count">41</div><div class="pct">3.4%</div><div class="bar"><i style="width:3%"></i></div></div><div class="class-tile" style="--c:#8E5B3A"><div class="name"><span class="swatch" style="background:#8E5B3A"></span>Dotted seeds</div><div class="count">310</div><div class="pct">25.7%</div><div class="bar"><i style="width:26%"></i></div></div><div class="class-tile" style="--c:#B08968"><div class="name"><span class="swatch" style="background:#B08968"></span>Marbled seeds</div><div class="count">222</div><div class="pct">18.4%</div><div class="bar"><i style="width:18%"></i></div></div><div class="class-tile" style="--c:#D4A24C"><div class="name"><span class="swatch" style="background:#D4A24C"></span>Spotted seeds</div><div class="count">398</div><div class="pct">33.1%</div><div class="bar"><i style="width:33%"></i></div></div><div class="class-tile" style="--c:#E0C894"><div class="name"><span class="swatch" style="background:#E0C894"></span>Unspotted seeds</div><div class="count">137</div><div class="pct">11.4%</div><div class="bar"><i style="width:11%"></i></div></div></div>
+<div class="note">That is <b>20.50 px/mm</b>. A seed 5 mm long will measure about 103 px across.</div>
+<div class="note flag">Sizes are in pixels because no scale was set. Go back to <b>Settings</b> and calibrate to get millimetres.</div>
+<div class="verdict" style="--c:#2F7A88"><span class="k">Caliper agreement</span><span>Lin's concordance 0.97 with a bias of −0.04 mm: image lengths can stand in for calipers on this lot.</span></div>
+<p><span class="btn p">Measure seeds</span><span class="btn">Back to photographs</span></p>
+</div></body></html>

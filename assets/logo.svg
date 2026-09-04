@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-label="LentilSeedVision">
+  <title>LentilSeedVision</title>
+  <!--
+    The mark is the app's own job in miniature: a seed appears, its outline is
+    traced, its coat markings are read, and a caliper measures it. Drawn in
+    currentColor so CSS can recolour the ink; the accent is a variable so the
+    theme can drive it.
+  -->
+  <style>
+    :root { --accent: #5B7128; --ink: #1B2116; }
+    .coat   { fill: #E6D5B8; fill-opacity: 0; }
+    .trace  { fill: none; stroke: #1B2116; stroke-width: 2.4;
+              stroke-linecap: round; stroke-dasharray: 152; stroke-dashoffset: 152; }
+    .spot   { fill: #6B5334; opacity: 0; }
+    .rule   { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round;
+              stroke-dasharray: 34; stroke-dashoffset: 34; }
+    .cap    { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; opacity: 0; }
+
+    .coat  { animation: ink   .55s .55s ease forwards; }
+    .trace { animation: draw  .95s .05s cubic-bezier(.4,0,.2,1) forwards,
+                        breathe 7s 2.2s ease-in-out infinite; }
+    .spot  { animation: pop   .35s ease-out forwards; }
+    .s1 { animation-delay: .90s; } .s2 { animation-delay: .99s; }
+    .s3 { animation-delay: 1.08s; } .s4 { animation-delay: 1.17s; }
+    .rule  { animation: draw  .45s 1.30s ease-out forwards,
+                        measure 7s 2.2s ease-in-out infinite; }
+    .cap   { animation: ink   .25s 1.55s ease forwards; }
+
+    @keyframes draw    { to { stroke-dashoffset: 0; } }
+    @keyframes ink     { to { fill-opacity: 1; opacity: 1; } }
+    @keyframes pop     { from { opacity: 0; transform: scale(.4); }
+                         to   { opacity: .85; transform: scale(1); } }
+    /* Every few seconds the outline tightens by a hair, as if re-measured. */
+    @keyframes breathe { 0%, 88%, 100% { stroke-width: 2.4; }
+                         94% { stroke-width: 3.1; } }
+    @keyframes measure { 0%, 86%, 100% { opacity: 1; }
+                         92% { opacity: .35; } }
+    .spot { transform-box: fill-box; transform-origin: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .coat { fill-opacity: 1; } .trace { stroke-dashoffset: 0; }
+      .spot, .cap { opacity: .85; } .rule { stroke-dashoffset: 0; }
+      * { animation: none !important; }
+    }
+  </style>
+
+  <ellipse class="coat"  cx="32" cy="27" rx="21" ry="17"/>
+  <ellipse class="trace" cx="32" cy="27" rx="21" ry="17"/>
+
+  <circle class="spot s1" cx="25" cy="22" r="2.5"/>
+  <circle class="spot s2" cx="37" cy="24" r="2"/>
+  <circle class="spot s3" cx="30" cy="32" r="1.7"/>
+  <circle class="spot s4" cx="40" cy="31" r="1.4"/>
+
+  <!-- caliper across the long axis -->
+  <line class="rule" x1="11" y1="53" x2="53" y2="53"/>
+  <line class="cap"  x1="11" y1="48" x2="11" y2="58"/>
+  <line class="cap"  x1="53" y1="48" x2="53" y2="58"/>
+</svg>

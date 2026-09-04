@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 96" width="260" height="96"
+     role="img" aria-label="measuring">
+  <!--
+    Shown while the model loads and while a batch runs. Seeds fall into the
+    tray, a scan line passes over them, and outlines appear behind it — the
+    literal thing the app is doing, rather than a spinner.
+  -->
+  <style>
+    .tray  { fill: #FFFFFF; stroke: #D3D9C6; stroke-width: 1.5; }
+    .seed  { fill: #D9B570; }
+    .drop  { animation: drop 2.4s cubic-bezier(.4,0,.6,1) infinite; }
+    .d2 { animation-delay: .30s; } .d3 { animation-delay: .60s; }
+    .d4 { animation-delay: .90s; } .d5 { animation-delay: 1.2s; }
+    .d6 { animation-delay: 1.5s; }
+    .scan  { stroke: #5B7128; stroke-width: 2; opacity: .85;
+             animation: scan 2.4s ease-in-out infinite; }
+    .ring  { fill: none; stroke: #5B7128; stroke-width: 1.6; opacity: 0;
+             animation: found 2.4s ease-out infinite; }
+    .r2 { animation-delay: .35s; } .r3 { animation-delay: .7s; }
+    .tick  { stroke: #D3D9C6; stroke-width: 1; }
+
+    @keyframes drop  { 0%   { transform: translateY(-34px); opacity: 0; }
+                       18%  { opacity: 1; }
+                       46%  { transform: translateY(0); }
+                       55%  { transform: translateY(-3px); }
+                       64%, 100% { transform: translateY(0); opacity: 1; } }
+    @keyframes scan  { 0%, 8%   { transform: translateX(0); opacity: 0; }
+                       12%       { opacity: .85; }
+                       88%       { transform: translateX(196px); opacity: .85; }
+                       100%      { transform: translateX(196px); opacity: 0; } }
+    @keyframes found { 0%, 30% { opacity: 0; transform: scale(.6); }
+                       45%     { opacity: 1; transform: scale(1); }
+                       92%     { opacity: 1; }
+                       100%    { opacity: 0; } }
+    .drop, .ring { transform-box: fill-box; transform-origin: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+      .ring { opacity: 1; }
+    }
+  </style>
+
+  <rect class="tray" x="26" y="30" width="208" height="52" rx="4"/>
+  <g class="tick">
+    <line x1="26" y1="86" x2="234" y2="86"/>
+    <line x1="46" y1="84" x2="46" y2="90"/><line x1="86" y1="84" x2="86" y2="90"/>
+    <line x1="126" y1="84" x2="126" y2="90"/><line x1="166" y1="84" x2="166" y2="90"/>
+    <line x1="206" y1="84" x2="206" y2="90"/>
+  </g>
+
+  <g>
+    <ellipse class="seed drop"    cx="52"  cy="50" rx="9" ry="7"/>
+    <ellipse class="seed drop d2" cx="82"  cy="62" rx="8" ry="6.5"/>
+    <ellipse class="seed drop d3" cx="112" cy="48" rx="9" ry="7"/>
+    <ellipse class="seed drop d4" cx="142" cy="63" rx="8.5" ry="6.5"/>
+    <ellipse class="seed drop d5" cx="172" cy="49" rx="9" ry="7"/>
+    <ellipse class="seed drop d6" cx="202" cy="61" rx="8" ry="6"/>
+  </g>
+
+  <ellipse class="ring"    cx="52"  cy="50" rx="12" ry="10"/>
+  <ellipse class="ring r2" cx="112" cy="48" rx="12" ry="10"/>
+  <ellipse class="ring r3" cx="172" cy="49" rx="12" ry="10"/>
+
+  <line class="scan" x1="32" y1="26" x2="32" y2="86"/>
+</svg>
